@@ -1,6 +1,6 @@
 package dev.kaiwen.userservice.controller;
 
-import dev.kaiwen.common.pojo.Result;
+import dev.kaiwen.common.response.Result;
 import dev.kaiwen.userservice.dto.RegisterRequest;
 import dev.kaiwen.userservice.entity.User;
 import dev.kaiwen.userservice.service.UserService;

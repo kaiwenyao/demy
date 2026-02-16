@@ -1,4 +1,4 @@
-package dev.kaiwen.common.pojo;
+package dev.kaiwen.common.response;
 
 import lombok.Getter;
 
