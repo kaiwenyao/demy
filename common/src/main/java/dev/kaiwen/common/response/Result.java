@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public class Result<T> {
 
-  private int code;
-  private String msg;
-  private T data;
+  private final int code;
+  private final String msg;
+  private final T data;
 
   private Result(int code, String msg, T data) {
     this.code = code;
