@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import dev.kaiwen.gatewayservice.util.ResultResponseUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -48,8 +49,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             .getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return ResultResponseUtil.writeError(exchange, HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
 
         String token = authHeader.substring(7);
@@ -68,8 +68,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return chain.filter(mutatedExchange);
 
         } catch (Exception e) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return ResultResponseUtil.writeError(exchange, HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
     }
 

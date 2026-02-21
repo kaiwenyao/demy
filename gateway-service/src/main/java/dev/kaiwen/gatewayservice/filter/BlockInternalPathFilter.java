@@ -1,5 +1,6 @@
 package dev.kaiwen.gatewayservice.filter;
 
+import dev.kaiwen.gatewayservice.util.ResultResponseUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -18,8 +19,7 @@ public class BlockInternalPathFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
         if (path.startsWith("/internal/")) {
-            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            return exchange.getResponse().setComplete();
+            return ResultResponseUtil.writeError(exchange, HttpStatus.FORBIDDEN, "Forbidden");
         }
         return chain.filter(exchange);
     }

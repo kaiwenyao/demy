@@ -5,6 +5,8 @@ import dev.kaiwen.authservice.dto.LoginResponse;
 import dev.kaiwen.authservice.dto.RefreshRequest;
 import dev.kaiwen.authservice.dto.UserCredentialResponse;
 import dev.kaiwen.authservice.client.UserServiceClient;
+import dev.kaiwen.common.exception.BadRequestException;
+import dev.kaiwen.common.exception.ResourceNotFoundException;
 import feign.FeignException;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -48,12 +50,12 @@ public class AuthService {
         try {
             claims = jwtService.parseToken(request.getRefreshToken());
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid refresh token");
+            throw new BadRequestException("Invalid refresh token");
         }
 
         String type = claims.get("type", String.class);
         if (!"refresh".equals(type)) {
-            throw new IllegalArgumentException("Invalid refresh token");
+            throw new BadRequestException("Invalid refresh token");
         }
 
         Long userId = Long.valueOf(claims.getSubject());
@@ -62,7 +64,7 @@ public class AuthService {
         try {
             user = userServiceClient.findById(userId);
         } catch (FeignException.NotFound e) {
-            throw new IllegalArgumentException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         String newAccessToken = jwtService.generateAccessToken(

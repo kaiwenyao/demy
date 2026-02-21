@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public PageDto<CourseResponse> findAll(String category, Pageable pageable) {
-        Page<Course> page = category != null
+        Page<Course> page = (category != null && !category.isBlank())
                 ? courseRepository.findByStatusAndCategory(CourseStatus.ACTIVE, category, pageable)
                 : courseRepository.findByStatus(CourseStatus.ACTIVE, pageable);
         return PageDto.from(page.map(c -> toResponse(c, false)));
@@ -111,14 +112,10 @@ public class CourseServiceImpl implements CourseService {
         response.setValidDays(course.getValidDays());
         response.setCreatedAt(course.getCreatedAt());
 
-        if (withSections) {
-            List<SectionResponse> sections = sectionRepository
-                    .findByCourseIdOrderBySortOrderAsc(course.getId())
-                    .stream()
-                    .map(this::toSectionResponse)
-                    .toList();
-            response.setSections(sections);
-        }
+        response.setSections(withSections
+                ? sectionRepository.findByCourseIdOrderBySortOrderAsc(course.getId())
+                        .stream().map(this::toSectionResponse).toList()
+                : Collections.emptyList());
 
         return response;
     }
