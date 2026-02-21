@@ -1,6 +1,7 @@
 package dev.kaiwen.enrollmentservice.repository;
 
 import dev.kaiwen.enrollmentservice.entity.Enrollment;
+import dev.kaiwen.enrollmentservice.entity.EnrollmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,9 +11,9 @@ import java.util.Optional;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
-    Page<Enrollment> findByUserIdOrderByUpdateTimeDesc(Long userId, Pageable pageable);
+    Page<Enrollment> findByUserIdOrderByUpdatedAtDesc(Long userId, Pageable pageable);
 
-    List<Enrollment> findByUserIdAndStatusOrderByLatestLearnTimeDesc(Long userId, Integer status, Pageable pageable);
+    List<Enrollment> findByUserIdAndStatusOrderByLatestLearnTimeDesc(Long userId, EnrollmentStatus status, Pageable pageable);
 
     Optional<Enrollment> findByUserIdAndCourseId(Long userId, Long courseId);
 

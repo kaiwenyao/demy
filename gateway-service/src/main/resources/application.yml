@@ -24,6 +24,12 @@ spring:
                 - Path=/api/v1/enrollments/**
               filters:
                 - StripPrefix=2
+            - id: course-route
+              uri: lb://course-service
+              predicates:
+                - Path=/api/v1/courses/**
+              filters:
+                - StripPrefix=2
 
 eureka:
   client:

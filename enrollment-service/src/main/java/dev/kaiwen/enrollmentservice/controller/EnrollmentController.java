@@ -42,7 +42,7 @@ public class EnrollmentController {
     }
 
     @GetMapping("/now")
-    @Operation(summary = "查询最近正在学习的课程", description = "查询当前用户最近正在学习的课程列表（status=1）")
+    @Operation(summary = "查询最近正在学习的课程", description = "查询当前用户最近正在学习的课程列表（status=IN_PROGRESS）")
     @ApiResponse(responseCode = "200", description = "查询成功")
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
     public Result<List<EnrollmentVo>> getMyCurrentLearning(

@@ -29,20 +29,9 @@ public class Enrollment {
     @Column(name = "course_id", nullable = false)
     private Long courseId;
 
-    /**
-     * 课程状态：0-未学习，1-学习中，2-已学完，3-已失效
-     */
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
-    private Integer status = 0;
-
-    @Column(name = "week_freq", columnDefinition = "TINYINT")
-    private Integer weekFreq;
-
-    /**
-     * 学习计划状态：0-没有计划，1-计划进行中
-     */
-    @Column(name = "plan_status", nullable = false, columnDefinition = "TINYINT")
-    private Integer planStatus = 0;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private EnrollmentStatus status = EnrollmentStatus.NOT_STARTED;
 
     @Column(name = "learned_sections", nullable = false)
     private Integer learnedSections = 0;
@@ -53,14 +42,14 @@ public class Enrollment {
     @Column(name = "latest_learn_time")
     private Instant latestLearnTime;
 
-    @Column(name = "create_time", nullable = false)
-    private Instant createTime;
-
     @Column(name = "expire_time")
     private Instant expireTime;
 
-    @Column(name = "update_time", nullable = false)
-    private Instant updateTime;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -68,16 +57,16 @@ public class Enrollment {
             this.id = TSID.fast().toLong();
         }
         Instant now = Instant.now();
-        if (createTime == null) {
-            createTime = now;
+        if (createdAt == null) {
+            createdAt = now;
         }
-        if (updateTime == null) {
-            updateTime = now;
+        if (updatedAt == null) {
+            updatedAt = now;
         }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updateTime = Instant.now();
+        updatedAt = Instant.now();
     }
 }

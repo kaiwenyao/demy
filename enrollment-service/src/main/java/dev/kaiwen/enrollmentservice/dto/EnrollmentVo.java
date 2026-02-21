@@ -1,6 +1,7 @@
 package dev.kaiwen.enrollmentservice.dto;
 
 import dev.kaiwen.enrollmentservice.entity.Enrollment;
+import dev.kaiwen.enrollmentservice.entity.EnrollmentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,14 +28,8 @@ public class EnrollmentVo {
     @Schema(description = "课程 ID")
     private Long courseId;
 
-    @Schema(description = "课程状态：0-未学习，1-学习中，2-已学完，3-已失效")
-    private Integer status;
-
-    @Schema(description = "每周学习频率")
-    private Integer weekFreq;
-
-    @Schema(description = "学习计划状态：0-没有计划，1-计划进行中")
-    private Integer planStatus;
+    @Schema(description = "学习状态：NOT_STARTED-未开始，IN_PROGRESS-学习中，COMPLETED-已学完，EXPIRED-已过期")
+    private EnrollmentStatus status;
 
     @Schema(description = "已学习小节数量")
     private Integer learnedSections;
@@ -45,14 +40,14 @@ public class EnrollmentVo {
     @Schema(description = "最近一次学习时间")
     private Instant latestLearnTime;
 
-    @Schema(description = "创建时间")
-    private Instant createTime;
-
-    @Schema(description = "过期时间")
+    @Schema(description = "过期时间，null 表示永久有效")
     private Instant expireTime;
 
+    @Schema(description = "创建时间")
+    private Instant createdAt;
+
     @Schema(description = "更新时间")
-    private Instant updateTime;
+    private Instant updatedAt;
 
     public static EnrollmentVo from(Enrollment e) {
         if (e == null) {
@@ -63,14 +58,12 @@ public class EnrollmentVo {
                 .userId(e.getUserId())
                 .courseId(e.getCourseId())
                 .status(e.getStatus())
-                .weekFreq(e.getWeekFreq())
-                .planStatus(e.getPlanStatus())
                 .learnedSections(e.getLearnedSections())
                 .latestSectionId(e.getLatestSectionId())
                 .latestLearnTime(e.getLatestLearnTime())
-                .createTime(e.getCreateTime())
                 .expireTime(e.getExpireTime())
-                .updateTime(e.getUpdateTime())
+                .createdAt(e.getCreatedAt())
+                .updatedAt(e.getUpdatedAt())
                 .build();
     }
 }

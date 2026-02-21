@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Demy API Collection",
-    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
+    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n| course-service | /api/v1/courses/** | 课程管理 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表、课程（讲师/管理）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/draft-07/collection.json"
   },
   "variable": [
@@ -267,6 +267,117 @@
             },
             "description": "# 删除课表中的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 删除课表中的某课程 |\n| 方法 | DELETE |\n| 路径 | /enrollment/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": null\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
           }
+        }
+      ]
+    },
+    {
+      "name": "Course",
+      "description": "课程服务接口。公开接口（GET 课程列表/详情）无需鉴权；创建/更新/下架/添加小节需管理员（ROLE_ADMIN）+ Authorization: Bearer {{access_token}}。",
+      "item": [
+        {
+          "name": "分页查询课程",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses"],
+              "query": [
+                {"key": "category", "value": "", "description": "分类筛选（可选）"},
+                {"key": "page", "value": "0", "description": "页码"},
+                {"key": "size", "value": "10", "description": "每页大小"}
+              ]
+            }
+          },
+          "description": "# 分页查询课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 方法 | GET |\n| 路径 | /api/v1/courses |\n| 鉴权 | 无 |\n\n## 说明\n仅返回 ACTIVE（上架中）的课程。\n\n## 请求参数\n| 参数 | 类型 | 必填 | 默认 | 说明 |\n|------|------|------|------|------|\n| category | query | 否 | - | 分类筛选 |\n| page | query | 否 | 0 | 页码 |\n| size | query | 否 | 10 | 每页大小 |\n\n## 成功响应\n```json\n{\n  \"content\": [...],\n  \"total\": 1,\n  \"page\": 0,\n  \"size\": 10,\n  \"totalPages\": 1\n}\n```"
+        },
+        {
+          "name": "查询课程详情（含小节）",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses", "1"]
+            }
+          },
+          "description": "# 查询课程详情（含小节）\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 方法 | GET |\n| 路径 | /api/v1/courses/{id} |\n| 鉴权 | 无 |\n\n## 说明\n仅返回 ACTIVE（上架中）的课程详情，含 sections 小节列表。\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| id | path | 课程 ID |\n\n## 错误响应\n- **404**：课程不存在或已下架"
+        },
+        {
+          "name": "创建课程",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Java 入门教程\",\n  \"description\": \"从零开始学 Java\",\n  \"coverImage\": \"https://example.com/cover.jpg\",\n  \"price\": 0,\n  \"category\": \"编程\",\n  \"level\": \"BEGINNER\",\n  \"validDays\": null\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses"]
+            }
+          },
+          "description": "# 创建课程（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n仅管理员可创建课程，创建后直接上架（ACTIVE）。\n\n## 请求体 CourseRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 课程标题 |\n| description | string | 否 | 课程描述 |\n| coverImage | string | 否 | 封面图 URL |\n| price | number | 是 | 价格，0 表示免费 |\n| category | string | 否 | 分类 |\n| level | string | 否 | BEGINNER/INTERMEDIATE/ADVANCED |\n| validDays | int | 否 | 有效天数，null 表示永久有效 |\n\n## 成功响应 (HTTP 201)\n\n## 错误响应\n- **403**：非管理员"
+        },
+        {
+          "name": "更新课程",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Java 入门教程（更新）\",\n  \"description\": \"从零开始学 Java\",\n  \"coverImage\": \"https://example.com/cover.jpg\",\n  \"price\": 0,\n  \"category\": \"编程\",\n  \"level\": \"BEGINNER\",\n  \"validDays\": null\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses", "1"]
+            }
+          },
+          "description": "# 更新课程（管理员）\n\n## 接口概览\n| 方法 | PUT | 路径 | /api/v1/courses/{id} | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
+        },
+        {
+          "name": "下架课程",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses", "1"]
+            }
+          },
+          "description": "# 下架课程（管理员）\n\n## 接口概览\n| 方法 | DELETE | 路径 | /api/v1/courses/{id} | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n将课程状态设为 INACTIVE，下架后不再在公开列表中显示。\n\n## 成功响应 (HTTP 204)\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
+        },
+        {
+          "name": "添加小节",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"第 1 章：环境搭建\",\n  \"duration\": 600,\n  \"sortOrder\": 1,\n  \"isFree\": true\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/courses/1/sections",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "courses", "1", "sections"]
+            }
+          },
+          "description": "# 添加小节（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses/{id}/sections | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 请求体 SectionRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 小节标题 |\n| duration | int | 否 | 时长（秒） |\n| sortOrder | int | 否 | 排序 |\n| isFree | boolean | 否 | 是否免费试看 |\n\n## 成功响应 (HTTP 201)\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
         }
       ]
     },

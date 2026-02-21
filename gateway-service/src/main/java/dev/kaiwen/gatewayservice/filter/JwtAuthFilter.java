@@ -35,9 +35,10 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
+        String method = exchange.getRequest().getMethod().name();
 
-        // 白名单路径直接放行
-        if (isWhitelisted(path)) {
+        // 白名单路径或公开接口（GET 课程列表/详情）直接放行
+        if (isWhitelisted(path, method)) {
             return chain.filter(exchange);
         }
 
@@ -81,8 +82,15 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             .getPayload();
     }
 
-    private boolean isWhitelisted(String path) {
-        return WHITE_LIST.stream().anyMatch(path::startsWith);
+    private boolean isWhitelisted(String path, String method) {
+        if (WHITE_LIST.stream().anyMatch(path::startsWith)) {
+            return true;
+        }
+        // GET 课程列表和课程详情为公开接口，无需鉴权
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/v1/courses")) {
+            return true;
+        }
+        return false;
     }
 
     @Override

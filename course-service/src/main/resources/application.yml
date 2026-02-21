@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: course-service
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+  config:
+    import: "configserver:"
