@@ -1,0 +1,17 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: auth-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  # 至少 32 字节的 Base64 编码密钥，示例：echo -n "secret-key-for-jwt-signing-at-least-32" | base64
+  secret: c2VjcmV0LWtleS1mb3Itand0LXNpZ25pbmctYXQtbGVhc3QtMzJieXRlcw==
+  access-token-expiration: 900000      # 15 分钟
+  refresh-token-expiration: 604800000  # 7 天

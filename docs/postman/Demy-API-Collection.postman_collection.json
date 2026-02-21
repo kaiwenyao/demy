@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "Demy API Collection",
+    "description": "# Demy 在线教育平台 - 接口文档\n\n## 服务说明\n\n| 服务 | 网关路径 | 直连端口 | 说明 |\n|------|----------|----------|------|\n| user-service | /users/** | 8081 | 用户注册等 |\n| auth-service | /api/v1/auth/** | - | 认证登录 |\n| enrollment-service | 未配置网关 | 8082 | 课表/选课 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表接口**：需在请求头携带 `X-User-Id`（当前用户 ID）\n- **登录后**：需在请求头携带 `Authorization: Bearer <accessToken>`（部分接口）\n\n## 统一响应格式 (Result)\n\n所有服务使用统一封装：\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/draft-07/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url_gateway",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "base_url_enrollment",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "User",
+      "description": "用户服务接口",
+      "item": [
+        {
+          "name": "User Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_gateway}}/users/register",
+              "host": ["{{base_url_gateway}}"],
+              "path": ["users", "register"]
+            },
+            "description": "# 用户注册\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 用户注册 |\n| 方法 | POST |\n| 路径 | /users/register |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| username | string | 是 | 用户名 |\n| email | string | 否 | 邮箱 |\n| password | string | 是 | 登录密码 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"role\": \"USER\",\n    \"createTime\": \"2025-02-21T12:00:00.000Z\",\n    \"updateTime\": \"2025-02-21T12:00:00.000Z\"\n  }\n}\n```\n\n**data 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| id | long | 用户 ID |\n| username | string | 用户名 |\n| email | string | 邮箱 |\n| role | string | 角色，默认 USER |\n| createTime | string | 创建时间 (ISO 8601) |\n| updateTime | string | 更新时间 (ISO 8601) |\n\n## 错误响应\n- **400**：用户名或密码为空\n- **409**：用户名已存在 / 邮箱已存在"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "认证服务接口",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"alice@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url_gateway}}/api/v1/auth/login",
+              "host": ["{{base_url_gateway}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "# 登录\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 登录 |\n| 方法 | POST |\n| 路径 | /api/v1/auth/login |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| identifier | string | 是 | 邮箱或用户名（统一字段） |\n| password | string | 是 | 密码 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"tokenType\": \"Bearer\"\n  }\n}\n```\n\n**字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| data.accessToken | string | JWT 访问令牌 |\n| data.tokenType | string | 固定 Bearer |\n\n## 错误响应\n- **400**：参数校验失败 (identifier/password 为空)\n- **401**：用户名或密码错误"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollment",
+      "description": "课表/课程注册管理接口。所有接口需在请求头携带 X-User-Id。",
+      "item": [
+        {
+          "name": "分页查询我的课表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_enrollment}}/enrollment/page?page=0&size=10",
+              "host": ["{{base_url_enrollment}}"],
+              "path": ["enrollment", "page"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "页码，从 0 开始"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "每页大小"
+                }
+              ]
+            },
+            "description": "# 分页查询我的课表\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 分页查询我的课表 |\n| 方法 | GET |\n| 路径 | /enrollment/page |\n| 鉴权 | X-User-Id 请求头 |\n\n## 请求参数\n| 参数 | 类型 | 必填 | 默认 | 说明 |\n|------|------|------|------|------|\n| X-User-Id | header | 是 | - | 当前用户 ID |\n| page | query | 否 | 0 | 页码 |\n| size | query | 否 | 10 | 每页大小 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"content\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, ... } ],\n    \"total\": 1,\n    \"page\": 0,\n    \"size\": 10,\n    \"totalPages\": 1\n  }\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：无数据时 content 为空数组"
+          }
+        },
+        {
+          "name": "查询最近正在学习的课程",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_enrollment}}/enrollment/now",
+              "host": ["{{base_url_enrollment}}"],
+              "path": ["enrollment", "now"]
+            },
+            "description": "# 查询最近正在学习的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 查询最近正在学习的课程 |\n| 方法 | GET |\n| 路径 | /enrollment/now |\n| 鉴权 | X-User-Id 请求头 |\n\n## 说明\n返回 status=1（学习中）的课程列表，按最近学习时间倒序，最多 10 条。\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, \"status\": 1, ... } ]\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头"
+          }
+        },
+        {
+          "name": "查询指定课程的学习状态",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_enrollment}}/enrollment/:courseId",
+              "host": ["{{base_url_enrollment}}"],
+              "path": ["enrollment", ":courseId"],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "# 查询指定课程的学习状态\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 根据课程 ID 查询学习状态 |\n| 方法 | GET |\n| 路径 | /enrollment/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"userId\": 1,\n    \"courseId\": 100,\n    \"status\": 1,\n    \"weekFreq\": 6,\n    \"planStatus\": 1,\n    \"learnedSections\": 3,\n    \"latestSectionId\": 15,\n    \"latestLearnTime\": \"2025-02-21T12:00:00Z\",\n    \"createTime\": \"2025-02-20T10:00:00Z\",\n    \"expireTime\": null,\n    \"updateTime\": \"2025-02-21T12:00:00Z\"\n  }\n}\n```\n\n**EnrollmentVo 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| status | int | 0-未学习，1-学习中，2-已学完，3-已失效 |\n| planStatus | int | 0-没有计划，1-计划进行中 |\n| learnedSections | int | 已学习小节数量 |\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
+          }
+        },
+        {
+          "name": "删除课表中的课程",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_enrollment}}/enrollment/:courseId",
+              "host": ["{{base_url_enrollment}}"],
+              "path": ["enrollment", ":courseId"],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "# 删除课表中的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 删除课表中的某课程 |\n| 方法 | DELETE |\n| 路径 | /enrollment/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": null\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Internal (User Service)",
+      "description": "内部接口，仅供 auth-service 通过 Feign 调用。不对外暴露，Gateway 应屏蔽 /internal/**。\n\n直连 user-service 使用（如端口 8081）。",
+      "item": [
+        {
+          "name": "Find User By Email",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8081/internal/users/by-email?email=alice@example.com",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["internal", "users", "by-email"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "alice@example.com"
+                }
+              ]
+            },
+            "description": "内部接口：根据邮箱查询用户凭证。返回 200 + UserCredentialResponse，或 404。"
+          }
+        },
+        {
+          "name": "Find User By Username",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8081/internal/users/by-username?username=alice",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["internal", "users", "by-username"],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "alice"
+                }
+              ]
+            },
+            "description": "内部接口：根据用户名查询用户凭证。返回 200 + UserCredentialResponse，或 404。"
+          }
+        }
+      ]
+    }
+  ]
+}

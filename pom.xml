@@ -28,6 +28,7 @@
     <module>config-server</module>
     <module>common</module>
     <module>enrollment-service</module>
+    <module>auth-service</module>
   </modules>
   <scm>
     <connection/>

@@ -34,6 +34,9 @@ public class User {
     @Column(name = "password", nullable = false, length = 128)
     private String password;
 
+    @Column(name = "role", length = 32)
+    private String role = "USER";
+
     @Column(name = "create_time")
     private Instant createTime;
 

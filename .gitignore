@@ -36,3 +36,6 @@ build/
 
 .env
 .DS_Store
+
+# Postman environment (may contain tokens, do not commit)
+docs/postman/*.postman_environment.json
