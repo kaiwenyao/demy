@@ -18,6 +18,9 @@ public class JwtService {
     @Value("${jwt.access-token-expiration}")
     private long accessTokenExpiration;
 
+    @Value("${jwt.refresh-token-expiration}")
+    private long refreshTokenExpiration;
+
     private SecretKey getSigningKey() {
         byte[] keyBytes = java.util.Base64.getDecoder().decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -30,6 +33,16 @@ public class JwtService {
                 .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(Long userId) {
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("type", "refresh")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(getSigningKey())
                 .compact();
     }

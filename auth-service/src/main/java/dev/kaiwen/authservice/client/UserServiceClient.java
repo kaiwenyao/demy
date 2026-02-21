@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "user-service")
 public interface UserServiceClient {
 
+    @GetMapping("/internal/users/by-id")
+    UserCredentialResponse findById(@RequestParam("id") Long id);
+
     @GetMapping("/internal/users/by-email")
     UserCredentialResponse findByEmail(@RequestParam("email") String email);
 

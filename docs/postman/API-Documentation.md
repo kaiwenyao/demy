@@ -111,6 +111,7 @@
   "msg": "success",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "tokenType": "Bearer"
   }
 }
@@ -118,7 +119,8 @@
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| data.accessToken | string | JWT 访问令牌 |
+| data.accessToken | string | JWT 访问令牌（15 分钟） |
+| data.refreshToken | string | 刷新令牌（7 天），用于换取新 accessToken |
 | data.tokenType | string | 固定 Bearer |
 
 ### 错误响应
@@ -128,7 +130,44 @@
 
 ---
 
-## 3. 分页查询我的课表
+## 3. 刷新 Access Token
+
+### 接口概览
+
+| 属性 | 值 |
+|------|-----|
+| 名称 | 刷新 Access Token |
+| 方法 | POST |
+| 路径 | /api/v1/auth/refresh |
+| 鉴权 | 无 |
+| Content-Type | application/json |
+
+### 请求参数
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| refreshToken | string | 是 | 登录时返回的 refreshToken |
+
+### 请求示例
+
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### 成功响应 (HTTP 200)
+
+与登录响应格式相同，返回新的 accessToken 和 refreshToken。
+
+### 错误响应
+
+- **400** — refreshToken 为空
+- **401** — refreshToken 无效或已过期
+
+---
+
+## 4. 分页查询我的课表
 
 ### 接口概览
 
@@ -185,7 +224,7 @@
 
 ---
 
-## 4. 查询最近正在学习的课程
+## 5. 查询最近正在学习的课程
 
 ### 接口概览
 
@@ -238,7 +277,7 @@
 
 ---
 
-## 5. 查询指定课程的学习状态
+## 6. 查询指定课程的学习状态
 
 ### 接口概览
 
@@ -294,7 +333,7 @@
 
 ---
 
-## 6. 删除课表中的课程
+## 7. 删除课表中的课程
 
 ### 接口概览
 

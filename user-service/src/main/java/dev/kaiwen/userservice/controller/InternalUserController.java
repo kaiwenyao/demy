@@ -21,6 +21,14 @@ public class InternalUserController {
 
     private final UserRepository userRepository;
 
+    @GetMapping("/by-id")
+    public ResponseEntity<UserCredentialResponse> findById(@RequestParam Long id) {
+        return userRepository.findById(id)
+                .map(InternalUserController::toCredentialResponse)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/by-email")
     public ResponseEntity<UserCredentialResponse> findByEmail(@RequestParam String email) {
         return userRepository.findByEmail(email)

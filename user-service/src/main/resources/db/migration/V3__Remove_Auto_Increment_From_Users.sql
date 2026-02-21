@@ -1,0 +1,2 @@
+-- 移除 users.id 的 AUTO_INCREMENT，改为应用层 TSID 生成
+ALTER TABLE users MODIFY COLUMN id BIGINT NOT NULL COMMENT '主键ID';

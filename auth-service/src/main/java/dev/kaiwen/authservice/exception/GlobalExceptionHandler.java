@@ -19,6 +19,12 @@ public class GlobalExceptionHandler {
         return Result.error(401, "Invalid credentials");
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<Void> handleIllegalArgument(IllegalArgumentException e) {
+        return Result.error(401, e.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> handleValidation(MethodArgumentNotValidException e) {

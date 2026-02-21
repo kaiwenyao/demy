@@ -1,6 +1,7 @@
 package dev.kaiwen.userservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.hypersistence.tsid.TSID;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +22,6 @@ import java.time.Instant;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "username", nullable = false, length = 64)
@@ -45,6 +45,9 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        if (this.id == null) {
+            this.id = TSID.fast().toLong();
+        }
         Instant now = Instant.now();
         if (createTime == null) {
             createTime = now;

@@ -18,7 +18,7 @@ import java.util.List;
  * 课表相关接口
  */
 @RestController
-@RequestMapping("/enrollment")
+@RequestMapping("/enrollments")
 @RequiredArgsConstructor
 @Tag(name = "Enrollment", description = "课表/课程注册管理")
 public class EnrollmentController {

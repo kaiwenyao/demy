@@ -2,9 +2,11 @@ package dev.kaiwen.authservice.service;
 
 import dev.kaiwen.authservice.dto.LoginRequest;
 import dev.kaiwen.authservice.dto.LoginResponse;
+import dev.kaiwen.authservice.dto.RefreshRequest;
 import dev.kaiwen.authservice.dto.UserCredentialResponse;
 import dev.kaiwen.authservice.client.UserServiceClient;
 import feign.FeignException;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,8 +38,39 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(
                 user.getId(), user.getEmail(), user.getRole() != null ? user.getRole() : "USER"
         );
+        String refreshToken = jwtService.generateRefreshToken(user.getId());
 
-        return new LoginResponse(accessToken);
+        return new LoginResponse(accessToken, refreshToken);
+    }
+
+    public LoginResponse refresh(RefreshRequest request) {
+        Claims claims;
+        try {
+            claims = jwtService.parseToken(request.getRefreshToken());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        String type = claims.get("type", String.class);
+        if (!"refresh".equals(type)) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        Long userId = Long.valueOf(claims.getSubject());
+
+        UserCredentialResponse user;
+        try {
+            user = userServiceClient.findById(userId);
+        } catch (FeignException.NotFound e) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        String newAccessToken = jwtService.generateAccessToken(
+                user.getId(), user.getEmail(), user.getRole() != null ? user.getRole() : "USER"
+        );
+        String newRefreshToken = jwtService.generateRefreshToken(user.getId());
+
+        return new LoginResponse(newAccessToken, newRefreshToken);
     }
 
     private boolean isEmail(String identifier) {

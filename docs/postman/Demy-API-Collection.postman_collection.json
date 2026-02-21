@@ -1,24 +1,20 @@
 {
   "info": {
     "name": "Demy API Collection",
-    "description": "# Demy 在线教育平台 - 接口文档\n\n## 服务说明\n\n| 服务 | 网关路径 | 直连端口 | 说明 |\n|------|----------|----------|------|\n| user-service | /users/** | 8081 | 用户注册等 |\n| auth-service | /api/v1/auth/** | - | 认证登录 |\n| enrollment-service | 未配置网关 | 8082 | 课表/选课 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表接口**：需在请求头携带 `X-User-Id`（当前用户 ID）\n- **登录后**：需在请求头携带 `Authorization: Bearer <accessToken>`（部分接口）\n\n## 统一响应格式 (Result)\n\n所有服务使用统一封装：\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
+    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/draft-07/collection.json"
   },
   "variable": [
     {
-      "key": "base_url_gateway",
+      "key": "base_url",
       "value": "http://localhost:8080"
     },
     {
-      "key": "base_url_enrollment",
-      "value": "http://localhost:8082"
-    },
-    {
-      "key": "user_id",
-      "value": "1"
-    },
-    {
       "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
       "value": ""
     }
   ],
@@ -47,9 +43,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url_gateway}}/users/register",
-              "host": ["{{base_url_gateway}}"],
-              "path": ["users", "register"]
+              "raw": "{{base_url}}/api/v1/users/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "register"]
             },
             "description": "# 用户注册\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 用户注册 |\n| 方法 | POST |\n| 路径 | /users/register |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| username | string | 是 | 用户名 |\n| email | string | 否 | 邮箱 |\n| password | string | 是 | 登录密码 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"role\": \"USER\",\n    \"createTime\": \"2025-02-21T12:00:00.000Z\",\n    \"updateTime\": \"2025-02-21T12:00:00.000Z\"\n  }\n}\n```\n\n**data 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| id | long | 用户 ID |\n| username | string | 用户名 |\n| email | string | 邮箱 |\n| role | string | 角色，默认 USER |\n| createTime | string | 创建时间 (ISO 8601) |\n| updateTime | string | 更新时间 (ISO 8601) |\n\n## 错误响应\n- **400**：用户名或密码为空\n- **409**：用户名已存在 / 邮箱已存在"
           }
@@ -80,33 +76,116 @@
               }
             },
             "url": {
-              "raw": "{{base_url_gateway}}/api/v1/auth/login",
-              "host": ["{{base_url_gateway}}"],
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "login"]
             },
             "description": "# 登录\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 登录 |\n| 方法 | POST |\n| 路径 | /api/v1/auth/login |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| identifier | string | 是 | 邮箱或用户名（统一字段） |\n| password | string | 是 | 密码 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"tokenType\": \"Bearer\"\n  }\n}\n```\n\n**字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| data.accessToken | string | JWT 访问令牌 |\n| data.tokenType | string | 固定 Bearer |\n\n## 错误响应\n- **400**：参数校验失败 (identifier/password 为空)\n- **401**：用户名或密码错误"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 登录成功后写入 access_token / refresh_token 变量",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = {}; }",
+                  "const data = json && json.data ? json.data : {};",
+                  "const accessToken = data.accessToken || data.access_token || null;",
+                  "const refreshToken = data.refreshToken || data.refresh_token || null;",
+                  "pm.test('accessToken exists', function () {",
+                  "    pm.expect(accessToken).to.be.a('string').and.not.empty;",
+                  "});",
+                  "if (accessToken) {",
+                  "    pm.collectionVariables.set('access_token', accessToken);",
+                  "    pm.environment.set('access_token', accessToken);",
+                  "    console.log('access_token 已写入 collection/environment 变量');",
+                  "}",
+                  "if (refreshToken) {",
+                  "    pm.collectionVariables.set('refresh_token', refreshToken);",
+                  "    pm.environment.set('refresh_token', refreshToken);",
+                  "    console.log('refresh_token 已写入 collection/environment 变量');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "// 刷新成功后，将新 token 写入 collection 变量",
+                "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                "const json = pm.response.json();",
+                "if (json.code === 200 && json.data) {",
+                "    if (json.data.accessToken) {",
+                "        pm.collectionVariables.set('access_token', json.data.accessToken);",
+                "        pm.environment.set('access_token', json.data.accessToken);",
+                "        console.log('access_token 已更新');",
+                "    }",
+                "    if (json.data.refreshToken) {",
+                "        pm.collectionVariables.set('refresh_token', json.data.refreshToken);",
+                "        pm.environment.set('refresh_token', json.data.refreshToken);",
+                "        console.log('refresh_token 已更新');",
+                "    }",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "description": "用 refreshToken 换取新的 accessToken 和 refreshToken。成功后会写入变量。"
         }
       ]
     },
     {
       "name": "Enrollment",
-      "description": "课表/课程注册管理接口。所有接口需在请求头携带 X-User-Id。",
+      "description": "课表/课程注册管理接口。通过网关访问，需 Authorization: Bearer {{access_token}}。",
       "item": [
+        {
+          "name": "课表 不带 Token (预期 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/enrollments/page",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "enrollments", "page"]
+            }
+          },
+          "description": "验证：不带 Token 请求课表，网关应返回 401。"
+        },
         {
           "name": "分页查询我的课表",
           "request": {
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{user_id}}"
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
               }
             ],
             "url": {
-              "raw": "{{base_url_enrollment}}/enrollment/page?page=0&size=10",
-              "host": ["{{base_url_enrollment}}"],
-              "path": ["enrollment", "page"],
+              "raw": "{{base_url}}/api/v1/enrollments/page?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "enrollments", "page"],
               "query": [
                 {
                   "key": "page",
@@ -129,14 +208,14 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{user_id}}"
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
               }
             ],
             "url": {
-              "raw": "{{base_url_enrollment}}/enrollment/now",
-              "host": ["{{base_url_enrollment}}"],
-              "path": ["enrollment", "now"]
+              "raw": "{{base_url}}/api/v1/enrollments/now",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "enrollments", "now"]
             },
             "description": "# 查询最近正在学习的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 查询最近正在学习的课程 |\n| 方法 | GET |\n| 路径 | /enrollment/now |\n| 鉴权 | X-User-Id 请求头 |\n\n## 说明\n返回 status=1（学习中）的课程列表，按最近学习时间倒序，最多 10 条。\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, \"status\": 1, ... } ]\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头"
           }
@@ -147,14 +226,14 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{user_id}}"
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
               }
             ],
             "url": {
-              "raw": "{{base_url_enrollment}}/enrollment/:courseId",
-              "host": ["{{base_url_enrollment}}"],
-              "path": ["enrollment", ":courseId"],
+              "raw": "{{base_url}}/api/v1/enrollments/:courseId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "enrollments", ":courseId"],
               "variable": [
                 {
                   "key": "courseId",
@@ -171,14 +250,14 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{user_id}}"
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
               }
             ],
             "url": {
-              "raw": "{{base_url_enrollment}}/enrollment/:courseId",
-              "host": ["{{base_url_enrollment}}"],
-              "path": ["enrollment", ":courseId"],
+              "raw": "{{base_url}}/api/v1/enrollments/:courseId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "enrollments", ":courseId"],
               "variable": [
                 {
                   "key": "courseId",
@@ -193,17 +272,16 @@
     },
     {
       "name": "Internal (User Service)",
-      "description": "内部接口，仅供 auth-service 通过 Feign 调用。不对外暴露，Gateway 应屏蔽 /internal/**。\n\n直连 user-service 使用（如端口 8081）。",
+      "description": "内部接口，仅供 auth-service 通过 Feign 调用。通过网关访问应返回 403（Gateway 屏蔽 /internal/**）。",
       "item": [
         {
-          "name": "Find User By Email",
+          "name": "Internal By Email (预期 403)",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost:8081/internal/users/by-email?email=alice@example.com",
-              "host": ["localhost"],
-              "port": "8081",
-              "path": ["internal", "users", "by-email"],
+"raw": "{{base_url}}/internal/users/by-email?email=alice@example.com",
+            "host": ["{{base_url}}"],
+            "path": ["internal", "users", "by-email"],
               "query": [
                 {
                   "key": "email",
@@ -211,18 +289,17 @@
                 }
               ]
             },
-            "description": "内部接口：根据邮箱查询用户凭证。返回 200 + UserCredentialResponse，或 404。"
+            "description": "验证：通过网关访问内部接口，应返回 403（Gateway 屏蔽）。"
           }
         },
         {
-          "name": "Find User By Username",
+          "name": "Internal By Username (预期 403)",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost:8081/internal/users/by-username?username=alice",
-              "host": ["localhost"],
-              "port": "8081",
-              "path": ["internal", "users", "by-username"],
+"raw": "{{base_url}}/internal/users/by-username?username=alice",
+            "host": ["{{base_url}}"],
+            "path": ["internal", "users", "by-username"],
               "query": [
                 {
                   "key": "username",
@@ -230,7 +307,7 @@
                 }
               ]
             },
-            "description": "内部接口：根据用户名查询用户凭证。返回 200 + UserCredentialResponse，或 404。"
+            "description": "验证：通过网关访问内部接口，应返回 403（Gateway 屏蔽）。"
           }
         }
       ]
