@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Demy API Collection",
-    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n| course-service | /api/v1/courses/** | 课程管理 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表、课程（讲师/管理）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
+    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n| course-service | /api/v1/courses/** | 课程管理 |\n| order-service | /api/v1/orders/** | 订单管理 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表、课程（讲师/管理）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **订单接口**：需 Bearer Token，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/draft-07/collection.json"
   },
   "variable": [
@@ -378,6 +378,64 @@
             }
           },
           "description": "# 添加小节（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses/{id}/sections | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 请求体 SectionRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 小节标题 |\n| duration | int | 否 | 时长（秒） |\n| sortOrder | int | 否 | 排序 |\n| isFree | boolean | 否 | 是否免费试看 |\n\n## 成功响应 (HTTP 201)\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "description": "订单服务接口。创建订单、模拟支付、查询订单列表均需 Authorization: Bearer {{access_token}}，网关解析 JWT 后注入 X-User-Id。",
+      "item": [
+        {
+          "name": "创建订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": 1\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "description": "# 创建订单（购买课程）\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 创建订单（购买课程） |\n| 方法 | POST |\n| 路径 | /api/v1/orders |\n| 鉴权 | Bearer Token |\n| Content-Type | application/json |\n\n## 说明\n创建订单，状态为 PENDING。返回 orderId 和 payExpireTime。用户需在超时前调用支付接口，免费和付费课程都需先创建再主动支付。\n\n## 请求体 CreateOrderRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| courseId | long | 是 | 课程 ID |\n\n## 成功响应 (HTTP 201)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1234567890123456789,\n    \"userId\": 1,\n    \"courseId\": 1,\n    \"amount\": 99.00,\n    \"status\": \"PENDING\",\n    \"payExpireTime\": \"2025-02-22T14:30:00\",\n    \"createdAt\": \"2025-02-22T14:00:00\"\n  }\n}\n```\n\n## 错误响应\n- **404**：课程不存在\n- **409**：课程已购买 / 已有未支付订单"
+        },
+        {
+          "name": "支付订单",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/:orderId/pay",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", ":orderId", "pay"],
+              "variable": [{"key": "orderId", "value": "1234567890123456789"}]
+            }
+          },
+          "description": "# 支付订单\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 支付订单 |\n| 方法 | POST |\n| 路径 | /api/v1/orders/{orderId}/pay |\n| 鉴权 | Bearer Token |\n\n## 说明\n用户主动支付。付费课程扣余额，免费课程直接完成。支付成功后发 MQ，enrollment 自动创建。\n\n## 错误响应\n- **400**：订单非 PENDING / 已超时 / 余额不足\n- **404**：订单不存在"
+        },
+        {
+          "name": "查询我的订单列表",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {"key": "page", "value": "0", "description": "页码"},
+                {"key": "size", "value": "20", "description": "每页大小"}
+              ]
+            }
+          },
+          "description": "# 查询我的订单列表\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 查询我的订单列表 |\n| 方法 | GET |\n| 路径 | /api/v1/orders |\n| 鉴权 | Bearer Token |\n\n## 请求参数\n| 参数 | 类型 | 必填 | 默认 | 说明 |\n|------|------|------|------|------|\n| page | query | 否 | 0 | 页码 |\n| size | query | 否 | 20 | 每页大小 |\n| sort | query | 否 | createdAt,desc | 排序 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"content\": [ {...OrderResponse} ],\n    \"total\": 1,\n    \"page\": 0,\n    \"size\": 20,\n    \"totalPages\": 1\n  }\n}\n```"
         }
       ]
     },

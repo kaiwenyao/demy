@@ -12,12 +12,14 @@
 | auth-service | /api/v1/auth/** | 认证登录 |
 | enrollment-service | /api/v1/enrollments/** | 课表/选课 |
 | course-service | /api/v1/courses/** | 课程管理 |
+| order-service | /api/v1/orders/** | 订单管理 |
 
 ## 鉴权说明
 
 - **用户注册、登录、刷新 Token**：无鉴权
 - **课表、课程（管理员）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id、X-User-Role
 - **课程管理接口**（创建/更新/下架/添加小节）：需 ROLE_ADMIN 角色
+- **订单接口**（创建订单、模拟支付、查询订单列表）：需 Bearer Token，网关解析 JWT 后注入 X-User-Id
 - **内部接口**：/internal/** 网关屏蔽，返回 403
 
 ## 统一响应格式 (Result)
@@ -732,11 +734,184 @@
 
 ---
 
+## 14. 创建订单
+
+### 接口概览
+
+| 属性 | 值 |
+|------|-----|
+| 名称 | 创建订单 |
+| 方法 | POST |
+| 路径 | /api/v1/orders |
+| 鉴权 | Bearer Token |
+| Content-Type | application/json |
+
+### 说明
+
+创建订单，状态为 PENDING。返回 orderId 和 payExpireTime（支付截止时间，默认当前时间+30分钟）。用户需在超时前调用支付接口完成支付，超时订单自动取消。免费课程和付费课程都需先创建订单再主动支付。
+
+**完整购买流程**：POST 创建订单 → 返回 orderId、payExpireTime → POST 支付订单 → 扣款 → PAID → enrollment 自动创建
+
+### 请求体 CreateOrderRequest
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| courseId | long | 是 | 课程 ID |
+
+### 请求示例
+
+```json
+{
+  "courseId": 1
+}
+```
+
+### 成功响应 (HTTP 201)
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "id": 1234567890123456789,
+    "userId": 1,
+    "courseId": 1,
+    "amount": 99.00,
+    "status": "PENDING",
+    "payExpireTime": "2025-02-22T14:30:00",
+    "createdAt": "2025-02-22T14:00:00"
+  }
+}
+```
+
+**OrderResponse 字段说明**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | long | 订单 ID |
+| userId | long | 用户 ID |
+| courseId | long | 课程 ID |
+| amount | number | 实付金额 |
+| status | string | PENDING / PAID / CANCELLED |
+| payExpireTime | string | 支付截止时间（超时自动取消） |
+| createdAt | string | 创建时间 |
+
+### 错误响应
+
+- **400** — 缺少 X-User-Id 或 courseId 为空
+- **401** — 未携带 Token 或 Token 无效
+- **404** — 课程不存在
+- **409** — 课程已购买 / 已有未支付订单，请先支付
+
+---
+
+## 15. 支付订单
+
+### 接口概览
+
+| 属性 | 值 |
+|------|-----|
+| 名称 | 支付订单 |
+| 方法 | POST |
+| 路径 | /api/v1/orders/{orderId}/pay |
+| 鉴权 | Bearer Token |
+
+### 说明
+
+用户主动支付订单。付费课程会扣减余额，免费课程直接完成。支付成功后订单变为 PAID，并发送 MQ 消息通知 enrollment-service 创建选课记录。
+
+### 路径参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| orderId | path | 订单 ID |
+
+### 成功响应 (HTTP 200)
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "id": 1234567890123456789,
+    "userId": 1,
+    "courseId": 1,
+    "amount": 99.00,
+    "status": "PAID",
+    "payExpireTime": "2025-02-22T14:30:00",
+    "createdAt": "2025-02-22T14:00:00"
+  }
+}
+```
+
+### 错误响应
+
+- **400** — 订单不属于当前用户 / 订单非 PENDING 状态 / 订单已超时 / 余额不足
+- **401** — 未携带 Token 或 Token 无效
+- **404** — 订单不存在
+
+---
+
+## 16. 查询我的订单列表
+
+### 接口概览
+
+| 属性 | 值 |
+|------|-----|
+| 名称 | 查询我的订单列表 |
+| 方法 | GET |
+| 路径 | /api/v1/orders |
+| 鉴权 | Bearer Token |
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| Authorization | header | 是 | - | Bearer &lt;accessToken&gt; |
+| page | query | 否 | 0 | 页码 |
+| size | query | 否 | 20 | 每页大小 |
+| sort | query | 否 | createdAt,desc | 排序 |
+
+### 成功响应 (HTTP 200)
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "content": [
+      {
+        "id": 1234567890123456789,
+        "userId": 1,
+        "courseId": 1,
+        "amount": 99.00,
+        "status": "PAID",
+        "payExpireTime": "2025-02-22T14:30:00",
+        "createdAt": "2025-02-22T14:00:00"
+      }
+    ],
+    "total": 1,
+    "page": 0,
+    "size": 20,
+    "totalPages": 1
+  }
+}
+```
+
+### 错误响应
+
+- **400** — 缺少 X-User-Id 请求头
+- **401** — 未携带 Token 或 Token 无效
+
+---
+
 ## 内部接口（不对外暴露）
 
 以下接口仅供服务间调用，通过网关访问应返回 403（Result 格式）。
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
+| GET | /internal/users/by-id?id= | 根据 ID 查询用户凭证 |
 | GET | /internal/users/by-email?email= | 根据邮箱查询用户凭证 |
 | GET | /internal/users/by-username?username= | 根据用户名查询用户凭证 |
+| POST | /internal/users/{userId}/deduct?amount= | 扣减用户余额（order-service 调用） |

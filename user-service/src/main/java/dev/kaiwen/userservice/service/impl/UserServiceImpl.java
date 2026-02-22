@@ -2,6 +2,7 @@ package dev.kaiwen.userservice.service.impl;
 
 import dev.kaiwen.common.exception.BadRequestException;
 import dev.kaiwen.common.exception.ResourceAlreadyExistsException;
+import dev.kaiwen.common.exception.ResourceNotFoundException;
 import dev.kaiwen.userservice.dto.RegisterRequest;
 import dev.kaiwen.userservice.entity.User;
 import dev.kaiwen.userservice.repository.UserRepository;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -41,5 +44,19 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole("USER");
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deductBalance(Long userId, BigDecimal amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getBalance() == null || user.getBalance().compareTo(amount) < 0) {
+            throw new BadRequestException("Insufficient balance");
+        }
+
+        user.setBalance(user.getBalance().subtract(amount));
+        userRepository.save(user);
     }
 }

@@ -1,14 +1,15 @@
 package dev.kaiwen.userservice.controller;
 
+import dev.kaiwen.common.response.Result;
 import dev.kaiwen.userservice.dto.UserCredentialResponse;
 import dev.kaiwen.userservice.entity.User;
 import dev.kaiwen.userservice.repository.UserRepository;
+import dev.kaiwen.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 /**
  * 内部接口，仅供 auth-service 通过 Feign 调用。
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalUserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/by-id")
     public ResponseEntity<UserCredentialResponse> findById(@RequestParam Long id) {
@@ -43,6 +45,15 @@ public class InternalUserController {
                 .map(InternalUserController::toCredentialResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{userId}/deduct")
+    public Result<Void> deductBalance(
+            @PathVariable Long userId,
+            @RequestParam BigDecimal amount
+    ) {
+        userService.deductBalance(userId, amount);
+        return Result.success();
     }
 
     private static UserCredentialResponse toCredentialResponse(User user) {

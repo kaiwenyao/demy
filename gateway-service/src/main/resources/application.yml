@@ -30,6 +30,12 @@ spring:
                 - Path=/api/v1/courses/**
               filters:
                 - StripPrefix=2
+            - id: order-route
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/orders/**
+              filters:
+                - StripPrefix=2
 
 eureka:
   client:

@@ -7,7 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -37,9 +40,14 @@ public class User {
     @Column(name = "role", length = 32)
     private String role = "USER";
 
+    @Column(name = "balance", nullable = false, precision = 10, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    @CreationTimestamp
     @Column(name = "create_time")
     private Instant createTime;
 
+    @UpdateTimestamp
     @Column(name = "update_time")
     private Instant updateTime;
 
@@ -48,17 +56,5 @@ public class User {
         if (this.id == null) {
             this.id = TSID.fast().toLong();
         }
-        Instant now = Instant.now();
-        if (createTime == null) {
-            createTime = now;
-        }
-        if (updateTime == null) {
-            updateTime = now;
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updateTime = Instant.now();
     }
 }

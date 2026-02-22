@@ -1,11 +1,17 @@
 package dev.kaiwen.enrollmentservice.service;
 
+import dev.kaiwen.common.message.OrderPaidMessage;
 import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.enrollmentservice.dto.EnrollmentVo;
 
 import java.util.List;
 
 public interface EnrollmentService {
+
+    /**
+     * 根据订单支付消息创建选课记录
+     */
+    void createFromOrder(OrderPaidMessage message);
 
     /**
      * 分页查询我的课表
