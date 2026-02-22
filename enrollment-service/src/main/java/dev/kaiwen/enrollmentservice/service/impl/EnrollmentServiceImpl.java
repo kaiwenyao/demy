@@ -8,7 +8,9 @@ import dev.kaiwen.enrollmentservice.entity.EnrollmentStatus;
 import dev.kaiwen.enrollmentservice.repository.EnrollmentRepository;
 import dev.kaiwen.enrollmentservice.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +27,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public PageDto<EnrollmentVo> getMyEnrollments(Long userId, int page, int size) {
-        var pageable = PageRequest.of(page, size);
-        var result = enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable);
-        var content = result.getContent().stream()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Enrollment> result = enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable);
+        List<EnrollmentVo> content = result.getContent().stream()
                 .map(EnrollmentVo::from)
                 .collect(Collectors.toList());
         return PageDto.of(content, result.getTotalElements(), page, size);
@@ -35,8 +37,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public List<EnrollmentVo> getMyCurrentLearning(Long userId) {
-        var pageable = PageRequest.of(0, CURRENT_LEARNING_LIMIT);
-        var enrollments = enrollmentRepository
+        Pageable pageable = PageRequest.of(0, CURRENT_LEARNING_LIMIT);
+        List<Enrollment> enrollments = enrollmentRepository
                 .findByUserIdAndStatusOrderByLatestLearnTimeDesc(userId, EnrollmentStatus.IN_PROGRESS, pageable);
         return enrollments.stream()
                 .map(EnrollmentVo::from)
@@ -45,7 +47,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public EnrollmentVo getEnrollmentByCourseId(Long userId, Long courseId) {
-        var enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
+        Enrollment enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found for course: " + courseId));
         return EnrollmentVo.from(enrollment);
     }
@@ -53,7 +55,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteEnrollment(Long userId, Long courseId) {
-        var enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
+        Enrollment enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found for course: " + courseId));
         enrollmentRepository.delete(enrollment);
     }
