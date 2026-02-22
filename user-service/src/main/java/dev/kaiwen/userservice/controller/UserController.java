@@ -2,23 +2,28 @@ package dev.kaiwen.userservice.controller;
 
 import dev.kaiwen.common.response.Result;
 import dev.kaiwen.userservice.dto.RegisterRequest;
+import dev.kaiwen.userservice.dto.UserResponse;
 import dev.kaiwen.userservice.entity.User;
 import dev.kaiwen.userservice.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+@Tag(name = "User", description = "用户管理")
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
     @PostMapping("/register")
-    public Result<User> register(@RequestBody RegisterRequest request) {
+    @Operation(summary = "用户注册")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Result<UserResponse> register(@RequestBody RegisterRequest request) {
         User user = userService.register(request);
-        return Result.success(user);
+        return Result.success(UserResponse.from(user));
     }
 }

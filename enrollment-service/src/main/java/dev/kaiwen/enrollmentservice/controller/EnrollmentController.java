@@ -1,15 +1,16 @@
 package dev.kaiwen.enrollmentservice.controller;
 
-import dev.kaiwen.common.exception.BadRequestException;
 import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.common.response.Result;
-import dev.kaiwen.enrollmentservice.dto.EnrollmentVo;
+import dev.kaiwen.enrollmentservice.dto.EnrollmentResponse;
 import dev.kaiwen.enrollmentservice.service.EnrollmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,26 +19,21 @@ import java.util.List;
  * 课表相关接口
  */
 @RestController
-@RequestMapping("/enrollments")
+@RequestMapping("/api/v1/enrollments")
 @RequiredArgsConstructor
 @Tag(name = "Enrollment", description = "课表/课程注册管理")
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    @GetMapping("/page")
+    @GetMapping
     @Operation(summary = "分页查询我的课表", description = "分页查询当前用户的课表，按更新时间倒序")
     @ApiResponse(responseCode = "200", description = "查询成功")
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
-    public Result<PageDto<EnrollmentVo>> getMyEnrollments(
-            @RequestHeader(value = "X-User-Id", required = false)
-            @Parameter(description = "当前用户 ID（网关鉴权后注入）", required = true) Long userId,
-            @RequestParam(defaultValue = "0")
-            @Parameter(description = "页码，从 0 开始") int page,
-            @RequestParam(defaultValue = "10")
-            @Parameter(description = "每页大小") int size) {
-        validateUserId(userId);
-        PageDto<EnrollmentVo> result = enrollmentService.getMyEnrollments(userId, page, size);
+    public Result<PageDto<EnrollmentResponse>> getMyEnrollments(
+            @RequestHeader("X-User-Id") @Parameter(description = "当前用户 ID（网关鉴权后注入）") Long userId,
+            @ParameterObject Pageable pageable) {
+        PageDto<EnrollmentResponse> result = enrollmentService.getMyEnrollments(userId, pageable);
         return Result.success(result);
     }
 
@@ -45,11 +41,9 @@ public class EnrollmentController {
     @Operation(summary = "查询最近正在学习的课程", description = "查询当前用户最近正在学习的课程列表（status=IN_PROGRESS）")
     @ApiResponse(responseCode = "200", description = "查询成功")
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
-    public Result<List<EnrollmentVo>> getMyCurrentLearning(
-            @RequestHeader(value = "X-User-Id", required = false)
-            @Parameter(description = "当前用户 ID", required = true) Long userId) {
-        validateUserId(userId);
-        List<EnrollmentVo> result = enrollmentService.getMyCurrentLearning(userId);
+    public Result<List<EnrollmentResponse>> getMyCurrentLearning(
+            @RequestHeader("X-User-Id") @Parameter(description = "当前用户 ID") Long userId) {
+        List<EnrollmentResponse> result = enrollmentService.getMyCurrentLearning(userId);
         return Result.success(result);
     }
 
@@ -58,12 +52,10 @@ public class EnrollmentController {
     @ApiResponse(responseCode = "200", description = "查询成功")
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
     @ApiResponse(responseCode = "404", description = "课程不在课表中")
-    public Result<EnrollmentVo> getEnrollmentByCourseId(
-            @RequestHeader(value = "X-User-Id", required = false)
-            @Parameter(description = "当前用户 ID", required = true) Long userId,
+    public Result<EnrollmentResponse> getEnrollmentByCourseId(
+            @RequestHeader("X-User-Id") @Parameter(description = "当前用户 ID") Long userId,
             @PathVariable @Parameter(description = "课程 ID") Long courseId) {
-        validateUserId(userId);
-        EnrollmentVo result = enrollmentService.getEnrollmentByCourseId(userId, courseId);
+        EnrollmentResponse result = enrollmentService.getEnrollmentByCourseId(userId, courseId);
         return Result.success(result);
     }
 
@@ -73,17 +65,9 @@ public class EnrollmentController {
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
     @ApiResponse(responseCode = "404", description = "课程不在课表中")
     public Result<Void> deleteEnrollment(
-            @RequestHeader(value = "X-User-Id", required = false)
-            @Parameter(description = "当前用户 ID", required = true) Long userId,
+            @RequestHeader("X-User-Id") @Parameter(description = "当前用户 ID") Long userId,
             @PathVariable @Parameter(description = "课程 ID") Long courseId) {
-        validateUserId(userId);
         enrollmentService.deleteEnrollment(userId, courseId);
         return Result.success();
-    }
-
-    private void validateUserId(Long userId) {
-        if (userId == null) {
-            throw new BadRequestException("X-User-Id header is required");
-        }
     }
 }

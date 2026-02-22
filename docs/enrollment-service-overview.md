@@ -92,7 +92,7 @@ Gateway 路由配置：
     - StripPrefix=2
 ```
 
-- 外部路径：`/api/v1/enrollments/page` → 转发后：`/enrollments/page`
+- 外部路径：`/api/v1/enrollments` → 转发后：`/enrollments`
 - `lb://`：通过 Eureka 发现 `enrollment-service`，LoadBalancer 选择实例
 
 Gateway 的 JwtAuthFilter 会：
@@ -141,7 +141,7 @@ enrollment-service/
 │       │       │   ├── Enrollment.java
 │       │       │   └── EnrollmentStatus.java
 │       │       ├── dto/
-│       │       │   └── EnrollmentVo.java
+│       │       │   └── EnrollmentResponse.java
 │       │       └── config/
 │       │           ├── SecurityConfig.java
 │       │           └── OpenApiConfig.java
@@ -357,7 +357,7 @@ enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable)
 
 ### 4.3 返回结果封装流程
 
-Service 层将 Repository 的 `Page<Enrollment>` 转为对外暴露的 `PageDto<EnrollmentVo>`：
+Service 层将 Repository 的 `Page<Enrollment>` 转为对外暴露的 `PageDto<EnrollmentResponse>`：
 
 ```java
 // 1. Repository 返回 Page<Enrollment>
@@ -365,7 +365,7 @@ var result = enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pagea
 
 // 2. 将 Entity 转为 DTO
 var content = result.getContent().stream()
-        .map(EnrollmentVo::from)
+        .map(EnrollmentResponse::from)
         .collect(Collectors.toList());
 
 // 3. 封装为 PageDto（common 模块提供）
@@ -377,8 +377,8 @@ return PageDto.of(content, result.getTotalElements(), page, size);
 | 层次 | 类型 | 来源 | 说明 |
 |------|------|------|------|
 | Repository 层 | `Page<Enrollment>` | Spring Data | 数据库查询结果 |
-| Service 层 | `PageDto<EnrollmentVo>` | common 模块 | 业务分页结构，Entity 已转为 DTO |
-| Controller 层 | `Result<PageDto<EnrollmentVo>>` | common 模块 | 统一 API 响应格式 |
+| Service 层 | `PageDto<EnrollmentResponse>` | common 模块 | 业务分页结构，Entity 已转为 DTO |
+| Controller 层 | `Result<PageDto<EnrollmentResponse>>` | common 模块 | 统一 API 响应格式 |
 
 **最终 JSON 示例**：
 
@@ -402,7 +402,7 @@ return PageDto.of(content, result.getTotalElements(), page, size);
 
 ```java
 // 适用于 Entity 即 DTO 的场景
-return PageDto.from(page.map(EnrollmentVo::from));
+return PageDto.from(page.map(EnrollmentResponse::from));
 ```
 
 ---
@@ -445,11 +445,11 @@ public void deleteEnrollment(Long userId, Long courseId) {
 
 ### 7. Entity → DTO 转换
 
-实体 `Enrollment` 仅在 Service/Repository 层使用，对外返回 DTO `EnrollmentVo`：
+实体 `Enrollment` 仅在 Service/Repository 层使用，对外返回 DTO `EnrollmentResponse`：
 
 ```java
-public static EnrollmentVo from(Enrollment e) {
-    return EnrollmentVo.builder()
+public static EnrollmentResponse from(Enrollment e) {
+    return EnrollmentResponse.builder()
             .id(e.getId())
             .userId(e.getUserId())
             .courseId(e.getCourseId())
@@ -467,7 +467,7 @@ public static EnrollmentVo from(Enrollment e) {
 
 | 接口 | 方法 | 说明 |
 |------|------|------|
-| `/enrollments/page` | GET | 分页查询我的课表 |
+| `/enrollments` | GET | 分页查询我的课表 |
 | `/enrollments/now` | GET | 最近正在学习的课程 |
 | `/enrollments/{courseId}` | GET | 指定课程的学习状态 |
 | `/enrollments/{courseId}` | DELETE | 从课表删除课程 |
@@ -475,14 +475,14 @@ public static EnrollmentVo from(Enrollment e) {
 **数据流示例**（分页查询）：
 
 ```
-1. 请求 GET /api/v1/enrollments/page?page=0&size=10
+1. 请求 GET /api/v1/enrollments?page=0&size=10
 2. Gateway 鉴权，注入 X-User-Id
-3. StripPrefix=2 → /enrollments/page
+3. StripPrefix=2 → /enrollments
 4. 路由到 enrollment-service
 5. Controller 校验 X-User-Id，调用 Service
 6. Service 调用 Repository.findByUserIdOrderByUpdatedAtDesc
 7. JPA 执行 SQL，返回 Page<Enrollment>
-8. Service 转为 PageDto<EnrollmentVo>
+8. Service 转为 PageDto<EnrollmentResponse>
 9. Controller 返回 Result.success(pageDto)
 ```
 

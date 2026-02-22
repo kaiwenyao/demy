@@ -16,26 +16,18 @@ spring:
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/users/**
-              filters:
-                - StripPrefix=2
             - id: enrollment-route
               uri: lb://enrollment-service
               predicates:
                 - Path=/api/v1/enrollments/**
-              filters:
-                - StripPrefix=2
             - id: course-route
               uri: lb://course-service
               predicates:
                 - Path=/api/v1/courses/**
-              filters:
-                - StripPrefix=2
             - id: order-route
               uri: lb://order-service
               predicates:
                 - Path=/api/v1/orders/**
-              filters:
-                - StripPrefix=2
 
 eureka:
   client:

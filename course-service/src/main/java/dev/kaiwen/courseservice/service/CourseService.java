@@ -10,6 +10,11 @@ public interface CourseService {
 
     CourseResponse findById(Long id);
 
+    /**
+     * 内部接口专用：按 id 查询课程基础信息，不查小节，供 order-service 等调用。
+     */
+    CourseInternalResponse findInternalById(Long id);
+
     CourseResponse create(CourseRequest request, Long adminId);
 
     CourseResponse update(Long courseId, CourseRequest request, Long adminId);

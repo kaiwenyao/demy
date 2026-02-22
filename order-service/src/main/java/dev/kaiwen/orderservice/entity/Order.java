@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "orders")
@@ -33,13 +33,13 @@ public class Order {
     private OrderStatus status = OrderStatus.PENDING;
 
     @Column(name = "pay_expire_time", nullable = false)
-    private LocalDateTime payExpireTime;
+    private Instant payExpireTime;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @PrePersist
     private void prePersist() {

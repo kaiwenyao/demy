@@ -44,12 +44,12 @@ public class User {
     private BigDecimal balance = BigDecimal.ZERO;
 
     @CreationTimestamp
-    @Column(name = "create_time")
-    private Instant createTime;
+    @Column(name = "created_at")
+    private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(name = "update_time")
-    private Instant updateTime;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @PrePersist
     protected void onCreate() {

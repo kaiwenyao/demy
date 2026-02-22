@@ -5,10 +5,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * 课程信息 DTO，用于 Feign 调用 course-service，仅包含订单业务所需字段。
+ * Feign 调用 course-service 内部接口返回的 DTO。
+ * 与 course-service 的 CourseInternalResponse 字段结构保持一致（契约隐式一致）。
  */
 @Data
-public class CourseResponse {
+public class CourseInternalResponse {
 
     private Long id;
     private BigDecimal price;

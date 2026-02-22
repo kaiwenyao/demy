@@ -17,7 +17,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnrollmentVo {
+public class EnrollmentResponse {
 
     @Schema(description = "选课记录 ID")
     private Long id;
@@ -49,11 +49,11 @@ public class EnrollmentVo {
     @Schema(description = "更新时间")
     private Instant updatedAt;
 
-    public static EnrollmentVo from(Enrollment e) {
+    public static EnrollmentResponse from(Enrollment e) {
         if (e == null) {
             return null;
         }
-        return EnrollmentVo.builder()
+        return EnrollmentResponse.builder()
                 .id(e.getId())
                 .userId(e.getUserId())
                 .courseId(e.getCourseId())

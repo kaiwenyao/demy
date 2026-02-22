@@ -1,0 +1,3 @@
+-- 统一时间字段命名为 created_at / updated_at
+ALTER TABLE users CHANGE COLUMN create_time created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间';
+ALTER TABLE users CHANGE COLUMN update_time updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';

@@ -1,6 +1,5 @@
 package dev.kaiwen.orderservice.client;
 
-import dev.kaiwen.common.response.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +11,7 @@ import java.math.BigDecimal;
 public interface UserServiceClient {
 
     @PostMapping("/internal/users/{userId}/deduct")
-    Result<Void> deductBalance(
+    void deductBalance(
             @PathVariable("userId") Long userId,
             @RequestParam("amount") BigDecimal amount
     );

@@ -3,7 +3,7 @@ package dev.kaiwen.enrollmentservice.service.impl;
 import dev.kaiwen.common.exception.ResourceNotFoundException;
 import dev.kaiwen.common.message.OrderPaidMessage;
 import dev.kaiwen.common.response.PageDto;
-import dev.kaiwen.enrollmentservice.dto.EnrollmentVo;
+import dev.kaiwen.enrollmentservice.dto.EnrollmentResponse;
 import dev.kaiwen.enrollmentservice.entity.Enrollment;
 import dev.kaiwen.enrollmentservice.entity.EnrollmentStatus;
 import dev.kaiwen.enrollmentservice.repository.EnrollmentRepository;
@@ -61,30 +61,29 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     @Override
-    public PageDto<EnrollmentVo> getMyEnrollments(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public PageDto<EnrollmentResponse> getMyEnrollments(Long userId, Pageable pageable) {
         Page<Enrollment> result = enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable);
-        List<EnrollmentVo> content = result.getContent().stream()
-                .map(EnrollmentVo::from)
+        List<EnrollmentResponse> content = result.getContent().stream()
+                .map(EnrollmentResponse::from)
                 .collect(Collectors.toList());
-        return PageDto.of(content, result.getTotalElements(), page, size);
+        return PageDto.of(content, result.getTotalElements(), result.getNumber(), result.getSize());
     }
 
     @Override
-    public List<EnrollmentVo> getMyCurrentLearning(Long userId) {
+    public List<EnrollmentResponse> getMyCurrentLearning(Long userId) {
         Pageable pageable = PageRequest.of(0, CURRENT_LEARNING_LIMIT);
         List<Enrollment> enrollments = enrollmentRepository
                 .findByUserIdAndStatusOrderByLatestLearnTimeDesc(userId, EnrollmentStatus.IN_PROGRESS, pageable);
         return enrollments.stream()
-                .map(EnrollmentVo::from)
+                .map(EnrollmentResponse::from)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public EnrollmentVo getEnrollmentByCourseId(Long userId, Long courseId) {
+    public EnrollmentResponse getEnrollmentByCourseId(Long userId, Long courseId) {
         Enrollment enrollment = enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found for course: " + courseId));
-        return EnrollmentVo.from(enrollment);
+        return EnrollmentResponse.from(enrollment);
     }
 
     @Override

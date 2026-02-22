@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @Schema(description = "订单响应")
@@ -16,6 +16,6 @@ public class OrderResponse {
     private Long courseId;
     private BigDecimal amount;
     private OrderStatus status;
-    private LocalDateTime payExpireTime;
-    private LocalDateTime createdAt;
+    private Instant payExpireTime;
+    private Instant createdAt;
 }

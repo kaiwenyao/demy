@@ -42,6 +42,17 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public CourseInternalResponse findInternalById(Long id) {
+        Course course = findCourseById(id);
+        CourseInternalResponse r = new CourseInternalResponse();
+        r.setId(course.getId());
+        r.setPrice(course.getPrice());
+        r.setValidDays(course.getValidDays());
+        r.setStatus(course.getStatus() != null ? course.getStatus().name() : null);
+        return r;
+    }
+
+    @Override
     public CourseResponse create(CourseRequest request, Long adminId) {
         Course course = new Course();
         fillCourse(course, request);

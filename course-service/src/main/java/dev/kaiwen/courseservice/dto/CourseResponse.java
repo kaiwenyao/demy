@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Schema(description = "课程响应")
@@ -26,7 +26,7 @@ public class CourseResponse {
     private Integer sectionCount;
     private CourseStatus status;
     private Integer validDays;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     @Schema(description = "小节列表，仅详情页填充")
     private List<SectionResponse> sections;
 }

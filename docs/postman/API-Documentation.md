@@ -95,8 +95,8 @@
     "username": "alice",
     "email": "alice@example.com",
     "role": "USER",
-    "createTime": "2025-02-21T12:00:00.000Z",
-    "updateTime": "2025-02-21T12:00:00.000Z"
+    "createdAt": "2025-02-21T12:00:00.000Z",
+    "updatedAt": "2025-02-21T12:00:00.000Z"
   }
 }
 ```
@@ -107,8 +107,8 @@
 | username | string | 用户名 |
 | email | string | 邮箱 |
 | role | string | 角色，默认 USER，管理员为 ROLE_ADMIN |
-| createTime | string | 创建时间 (ISO 8601) |
-| updateTime | string | 更新时间 (ISO 8601) |
+| createdAt | string | 创建时间 (ISO 8601 UTC) |
+| updatedAt | string | 更新时间 (ISO 8601 UTC) |
 
 ### 错误响应
 
@@ -217,7 +217,7 @@
 |------|-----|
 | 名称 | 分页查询我的课表 |
 | 方法 | GET |
-| 路径 | /api/v1/enrollments/page |
+| 路径 | /api/v1/enrollments |
 | 鉴权 | Bearer Token |
 
 ### 请求参数
@@ -246,9 +246,9 @@
         "learnedSections": 3,
         "latestSectionId": 15,
         "latestLearnTime": "2025-02-21T12:00:00Z",
-        "createTime": "2025-02-20T10:00:00Z",
+        "createdAt": "2025-02-20T10:00:00Z",
         "expireTime": null,
-        "updateTime": "2025-02-21T12:00:00Z"
+        "updatedAt": "2025-02-21T12:00:00Z"
       }
     ],
     "total": 1,
@@ -304,9 +304,9 @@
       "learnedSections": 3,
       "latestSectionId": 15,
       "latestLearnTime": "2025-02-21T12:00:00Z",
-      "createTime": "2025-02-20T10:00:00Z",
+      "createdAt": "2025-02-20T10:00:00Z",
       "expireTime": null,
-      "updateTime": "2025-02-21T12:00:00Z"
+      "updatedAt": "2025-02-21T12:00:00Z"
     }
   ]
 }
@@ -352,14 +352,14 @@
     "learnedSections": 3,
     "latestSectionId": 15,
     "latestLearnTime": "2025-02-21T12:00:00Z",
-    "createTime": "2025-02-20T10:00:00Z",
+    "createdAt": "2025-02-20T10:00:00Z",
     "expireTime": null,
-    "updateTime": "2025-02-21T12:00:00Z"
+    "updatedAt": "2025-02-21T12:00:00Z"
   }
 }
 ```
 
-**EnrollmentVo 字段说明**
+**EnrollmentResponse 字段说明**
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -778,8 +778,8 @@
     "courseId": 1,
     "amount": 99.00,
     "status": "PENDING",
-    "payExpireTime": "2025-02-22T14:30:00",
-    "createdAt": "2025-02-22T14:00:00"
+    "payExpireTime": "2025-02-22T14:30:00Z",
+    "createdAt": "2025-02-22T14:00:00Z"
   }
 }
 ```
@@ -793,8 +793,8 @@
 | courseId | long | 课程 ID |
 | amount | number | 实付金额 |
 | status | string | PENDING / PAID / CANCELLED |
-| payExpireTime | string | 支付截止时间（超时自动取消） |
-| createdAt | string | 创建时间 |
+| payExpireTime | string | 支付截止时间（ISO 8601 UTC，超时自动取消） |
+| createdAt | string | 创建时间 (ISO 8601 UTC，带 Z) |
 
 ### 错误响应
 
@@ -838,8 +838,8 @@
     "courseId": 1,
     "amount": 99.00,
     "status": "PAID",
-    "payExpireTime": "2025-02-22T14:30:00",
-    "createdAt": "2025-02-22T14:00:00"
+    "payExpireTime": "2025-02-22T14:30:00Z",
+    "createdAt": "2025-02-22T14:00:00Z"
   }
 }
 ```
@@ -886,8 +886,8 @@
         "courseId": 1,
         "amount": 99.00,
         "status": "PAID",
-        "payExpireTime": "2025-02-22T14:30:00",
-        "createdAt": "2025-02-22T14:00:00"
+        "payExpireTime": "2025-02-22T14:30:00Z",
+        "createdAt": "2025-02-22T14:00:00Z"
       }
     ],
     "total": 1,
@@ -915,3 +915,4 @@
 | GET | /internal/users/by-email?email= | 根据邮箱查询用户凭证 |
 | GET | /internal/users/by-username?username= | 根据用户名查询用户凭证 |
 | POST | /internal/users/{userId}/deduct?amount= | 扣减用户余额（order-service 调用） |
+| GET | /internal/courses/{id} | 根据 ID 查询课程（order-service 调用） |

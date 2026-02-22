@@ -5,11 +5,10 @@ import dev.kaiwen.common.exception.ResourceAlreadyExistsException;
 import dev.kaiwen.common.exception.ResourceNotFoundException;
 import dev.kaiwen.common.message.OrderPaidMessage;
 import dev.kaiwen.common.response.PageDto;
-import dev.kaiwen.common.response.Result;
 import dev.kaiwen.orderservice.client.CourseServiceClient;
 import dev.kaiwen.orderservice.client.UserServiceClient;
 import dev.kaiwen.orderservice.config.RabbitMQConfig;
-import dev.kaiwen.orderservice.dto.CourseResponse;
+import dev.kaiwen.orderservice.dto.CourseInternalResponse;
 import dev.kaiwen.orderservice.dto.OrderResponse;
 import dev.kaiwen.orderservice.entity.Order;
 import dev.kaiwen.orderservice.entity.OrderStatus;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,10 +53,12 @@ public class OrderServiceImpl implements OrderService {
             throw new ResourceAlreadyExistsException("Order already exists, please pay");
         }
 
-        // 3. 查询课程信息
-        Result<CourseResponse> result = courseServiceClient.getCourseById(courseId);
-        CourseResponse course = result != null ? result.getData() : null;
+        // 3. 查询课程信息（内部接口不查小节，仅返回基础字段）
+        CourseInternalResponse course = courseServiceClient.getCourseById(courseId);
         if (course == null) {
+            throw new ResourceNotFoundException("Course not found: " + courseId);
+        }
+        if (!"ACTIVE".equals(course.getStatus())) {
             throw new ResourceNotFoundException("Course not found: " + courseId);
         }
 
@@ -69,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
         order.setCourseId(courseId);
         order.setAmount(price);
         order.setStatus(OrderStatus.PENDING);
-        order.setPayExpireTime(LocalDateTime.now().plusMinutes(30));
+        order.setPayExpireTime(Instant.now().plusSeconds(30 * 60));
         orderRepository.save(order);
 
         return toResponse(order);
@@ -95,7 +96,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 4. 校验是否超时
-        if (LocalDateTime.now().isAfter(order.getPayExpireTime())) {
+        if (Instant.now().isAfter(order.getPayExpireTime())) {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
             throw new BadRequestException("Order has expired");
@@ -115,9 +116,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         // 7. 查询 validDays 发送 MQ
-        Result<CourseResponse> courseResult = courseServiceClient
-                .getCourseById(order.getCourseId());
-        CourseResponse course = courseResult != null ? courseResult.getData() : null;
+        CourseInternalResponse course = courseServiceClient.getCourseById(order.getCourseId());
         Integer validDays = course != null ? course.getValidDays() : null;
 
         rabbitTemplate.convertAndSend(
