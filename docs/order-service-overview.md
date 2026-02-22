@@ -331,7 +331,9 @@ order-service/
 │   │   ├── repository/
 │   │   │   └── OrderRepository.java
 │   │   └── service/
-│   │       └── OrderService.java
+│   │       ├── OrderService.java
+│   │       └── impl/
+│   │           └── OrderServiceImpl.java
 │   └── resources/
 │       ├── application.yml
 │       └── db/migration/
