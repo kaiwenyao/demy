@@ -294,6 +294,119 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
 ---
 
+### 4.1 Page\<T\> 与 Optional\<T\> 详解
+
+#### Page\<T\>（如 Page\<Enrollment\>）
+
+| 项目 | 说明 |
+|------|------|
+| **来源** | `org.springframework.data.domain.Page`，由 **Spring Data Commons** 提供 |
+| **依赖链** | `spring-boot-starter-data-jpa` → `spring-data-jpa` → `spring-data-commons` |
+| **作用** | 封装分页查询结果，包含当前页数据、总记录数、页码、每页大小等元信息 |
+| **常用方法** | `getContent()` 当前页数据；`getTotalElements()` 总记录数；`getNumber()` 当前页码；`getSize()` 每页大小；`getTotalPages()` 总页数 |
+
+当 Repository 方法返回类型为 `Page<T>` 且参数包含 `Pageable` 时，Spring Data JPA 会：
+
+1. 执行**主查询**：`SELECT ... FROM enrollments WHERE user_id = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?`
+2. 执行 **COUNT 查询**：`SELECT COUNT(*) FROM enrollments WHERE user_id = ?`，用于计算总记录数和总页数
+
+#### Optional\<T\>（如 Optional\<Enrollment\>）
+
+| 项目 | 说明 |
+|------|------|
+| **来源** | `java.util.Optional`，**JDK 8+ 标准库** |
+| **作用** | 表示“可能有值可能为空”的查询结果，避免返回 `null` 导致 NPE，并强制调用方显式处理“不存在”的情况 |
+| **常用方法** | `orElseThrow()` 不存在时抛异常；`orElse(default)` 不存在时返回默认值；`isPresent()` 判断是否有值 |
+
+`findByUserIdAndCourseId` 返回 `Optional<Enrollment>`，因为按 userId + courseId 查询时，记录可能不存在。使用方式：
+
+```java
+enrollmentRepository.findByUserIdAndCourseId(userId, courseId)
+    .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found for course: " + courseId));
+```
+
+---
+
+### 4.2 分页查询实现流程
+
+```
+Controller 传入 page=0, size=10
+        │
+        ▼
+PageRequest.of(0, 10)  →  创建 Pageable 对象
+        │
+        ▼
+enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable)
+        │
+        ├── Spring Data 解析方法名，生成 SQL：
+        │   SELECT * FROM enrollments WHERE user_id = ? ORDER BY updated_at DESC LIMIT 10 OFFSET 0
+        │
+        ├── 执行 COUNT 查询（用于 total）：
+        │   SELECT COUNT(*) FROM enrollments WHERE user_id = ?
+        │
+        ▼
+返回 Page<Enrollment>，包含：
+  - content: 当前页的 List<Enrollment>
+  - totalElements: 总记录数
+  - number: 0（当前页码）
+  - size: 10（每页大小）
+  - totalPages: 由 totalElements/size 计算
+```
+
+---
+
+### 4.3 返回结果封装流程
+
+Service 层将 Repository 的 `Page<Enrollment>` 转为对外暴露的 `PageDto<EnrollmentVo>`：
+
+```java
+// 1. Repository 返回 Page<Enrollment>
+var result = enrollmentRepository.findByUserIdOrderByUpdatedAtDesc(userId, pageable);
+
+// 2. 将 Entity 转为 DTO
+var content = result.getContent().stream()
+        .map(EnrollmentVo::from)
+        .collect(Collectors.toList());
+
+// 3. 封装为 PageDto（common 模块提供）
+return PageDto.of(content, result.getTotalElements(), page, size);
+```
+
+**封装层次**：
+
+| 层次 | 类型 | 来源 | 说明 |
+|------|------|------|------|
+| Repository 层 | `Page<Enrollment>` | Spring Data | 数据库查询结果 |
+| Service 层 | `PageDto<EnrollmentVo>` | common 模块 | 业务分页结构，Entity 已转为 DTO |
+| Controller 层 | `Result<PageDto<EnrollmentVo>>` | common 模块 | 统一 API 响应格式 |
+
+**最终 JSON 示例**：
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "content": [
+      {"id": 1, "userId": 100, "courseId": 5, "status": "IN_PROGRESS", ...}
+    ],
+    "total": 25,
+    "page": 0,
+    "size": 10,
+    "totalPages": 3
+  }
+}
+```
+
+**可选简化**：若不需要 Entity→DTO 转换，可直接使用 common 的 `PageDto.from(Page<T>)`：
+
+```java
+// 适用于 Entity 即 DTO 的场景
+return PageDto.from(page.map(EnrollmentVo::from));
+```
+
+---
+
 ### 5. 事务管理
 
 ```java
