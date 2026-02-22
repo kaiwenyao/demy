@@ -29,7 +29,7 @@ public class OrderController {
             @RequestBody @Valid CreateOrderRequest request,
             @RequestHeader("X-User-Id") Long userId
     ) {
-        return Result.success(orderService.createOrder(userId, request.getCourseId()));
+        return Result.created(orderService.createOrder(userId, request.getCourseId()));
     }
 
     @PostMapping("/{orderId}/pay")

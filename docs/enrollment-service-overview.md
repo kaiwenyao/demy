@@ -88,11 +88,9 @@ Gateway 路由配置：
   uri: lb://enrollment-service
   predicates:
     - Path=/api/v1/enrollments/**
-  filters:
-    - StripPrefix=2
 ```
 
-- 外部路径：`/api/v1/enrollments` → 转发后：`/enrollments`
+- 外部路径：`/api/v1/enrollments` 原样转发至 enrollment-service
 - `lb://`：通过 Eureka 发现 `enrollment-service`，LoadBalancer 选择实例
 
 Gateway 的 JwtAuthFilter 会：
@@ -102,7 +100,7 @@ Gateway 的 JwtAuthFilter 会：
 Controller 从 Header 读取用户身份：
 
 ```java
-@RequestHeader(value = "X-User-Id", required = false) Long userId
+@RequestHeader("X-User-Id") Long userId
 ```
 
 ---
@@ -477,13 +475,12 @@ public static EnrollmentResponse from(Enrollment e) {
 ```
 1. 请求 GET /api/v1/enrollments?page=0&size=10
 2. Gateway 鉴权，注入 X-User-Id
-3. StripPrefix=2 → /enrollments
-4. 路由到 enrollment-service
-5. Controller 校验 X-User-Id，调用 Service
-6. Service 调用 Repository.findByUserIdOrderByUpdatedAtDesc
-7. JPA 执行 SQL，返回 Page<Enrollment>
-8. Service 转为 PageDto<EnrollmentResponse>
-9. Controller 返回 Result.success(pageDto)
+3. 原样转发至 enrollment-service
+4. Controller 从 Header 读取 X-User-Id，调用 Service
+5. Service 调用 Repository.findByUserIdOrderByUpdatedAtDesc
+6. JPA 执行 SQL，返回 Page<Enrollment>
+7. Service 转为 PageDto<EnrollmentResponse>
+8. Controller 返回 Result.success(pageDto)
 ```
 
 ---

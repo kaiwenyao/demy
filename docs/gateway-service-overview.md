@@ -186,22 +186,21 @@ spring:
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/users/**
-              filters:
-                - StripPrefix=2
             # 选课服务
             - id: enrollment-route
               uri: lb://enrollment-service
               predicates:
                 - Path=/api/v1/enrollments/**
-              filters:
-                - StripPrefix=2
             # 课程服务
             - id: course-route
               uri: lb://course-service
               predicates:
                 - Path=/api/v1/courses/**
-              filters:
-                - StripPrefix=2
+            # 订单服务
+            - id: order-route
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/orders/**
 
 eureka:
   client:
@@ -219,14 +218,10 @@ jwt:
 |--------|------|
 | `uri: lb://auth-service` | `lb` 表示 LoadBalancer，通过 Eureka 发现 `auth-service` 并负载均衡 |
 | `predicates: Path=/api/v1/auth/**` | 匹配请求路径，`**` 表示多级路径 |
-| `StripPrefix=2` | 转发前去掉路径前 2 段，如 `/api/v1/users/123` → `/users/123` |
 
-### StripPrefix 说明
+### 路径转发说明
 
-- **auth-route** 无 StripPrefix：请求 `/api/v1/auth/login` 原样转发到 auth-service
-- **user-route** 有 `StripPrefix=2`：请求 `/api/v1/users/123` 转发为 `/users/123`（去掉 `api`、`v1`）
-
-具体取决于各微服务内部定义的 Controller 路径。
+Gateway 将请求**原样转发**至下游服务，不做路径裁剪。例如请求 `/api/v1/users/123` 会原样转发到 user-service。各微服务 Controller 均使用 `/api/v1/xxx` 作为基础路径，与 Gateway 路由一致。
 
 ### JWT Secret
 
@@ -254,10 +249,9 @@ jwt:
 2. BlockInternalPathFilter  → 非 /internal/**，放行
 3. JwtAuthFilter            → 校验 JWT（若需鉴权），注入 X-User-Id、X-User-Role
 4. 路由匹配                 → Path=/api/v1/users/** 命中 user-route
-5. StripPrefix=2            → 路径变为 /users/123
-6. LoadBalancer             → 从 Eureka 获取 user-service 实例，选一个
-7. 转发请求                 → 发送到 user-service，带 X-User-Id、X-User-Role
-8. 返回响应                 → 原路返回给客户端
+5. LoadBalancer             → 从 Eureka 获取 user-service 实例，选一个
+6. 转发请求                 → 原样转发路径到 user-service，带 X-User-Id、X-User-Role
+7. 返回响应                 → 原路返回给客户端
 ```
 
 ---
@@ -324,7 +318,7 @@ curl http://localhost:8080/internal/xxx
 
 ### 3. 路径转发错误
 
-检查 `StripPrefix` 与下游服务 Controller 路径是否匹配。若下游是 `/api/v1/users`，则 Gateway 不应 StripPrefix；若下游是 `/users`，则需 StripPrefix=2。
+Gateway 将路径原样转发，下游服务 Controller 需使用 `/api/v1/xxx` 等完整路径与 Gateway 路由一致。若请求未命中预期服务，检查 `predicates` 中的 `Path` 配置。
 
 ### 4. 为什么用 WebFlux？
 

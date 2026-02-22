@@ -49,7 +49,7 @@ public class CourseController {
             @RequestHeader("X-User-Id") Long adminId,
             @RequestHeader("X-User-Role") String role) {
         checkAdmin(role);
-        return Result.success(courseService.create(request, adminId));
+        return Result.created(courseService.create(request, adminId));
     }
 
     @PutMapping("/{id}")
@@ -81,7 +81,7 @@ public class CourseController {
             @RequestBody @Valid SectionRequest request,
             @RequestHeader("X-User-Role") String role) {
         checkAdmin(role);
-        return Result.success(courseService.addSection(id, request));
+        return Result.created(courseService.addSection(id, request));
     }
 
     // ===== 私有方法 =====

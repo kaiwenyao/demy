@@ -24,18 +24,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public User register(RegisterRequest request) {
-        String username = request.getUsername() != null ? request.getUsername().trim() : "";
-        if (username.isBlank()) {
-            throw new BadRequestException("Username is required");
-        }
-        if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new BadRequestException("Password is required");
-        }
+        String username = request.getUsername().trim();
         if (userRepository.existsByUsername(username)) {
             throw new ResourceAlreadyExistsException("Username already exists");
         }
-        String email = request.getEmail() != null ? request.getEmail().trim() : null;
-        if (email != null && !email.isBlank() && userRepository.existsByEmail(email)) {
+        String email = request.getEmail() != null && !request.getEmail().isBlank()
+                ? request.getEmail().trim()
+                : null;
+        if (email != null && userRepository.existsByEmail(email)) {
             throw new ResourceAlreadyExistsException("Email already registered");
         }
         User user = new User();

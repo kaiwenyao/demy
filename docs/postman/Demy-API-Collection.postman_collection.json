@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Demy API Collection",
-    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n| course-service | /api/v1/courses/** | 课程管理 |\n| order-service | /api/v1/orders/** | 订单管理 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表、课程（讲师/管理）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **订单接口**：需 Bearer Token，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```",
+    "description": "# Demy 在线教育平台 - 接口文档\n\n## 统一入口\n\n**所有请求均通过网关**：http://localhost:8080\n\n## 服务路由\n\n| 服务 | 网关路径 | 说明 |\n|------|----------|------|\n| user-service | /api/v1/users/** | 用户注册等 |\n| auth-service | /api/v1/auth/** | 认证登录 |\n| enrollment-service | /api/v1/enrollments/** | 课表/选课 |\n| course-service | /api/v1/courses/** | 课程管理 |\n| order-service | /api/v1/orders/** | 订单管理 |\n\n## 鉴权说明\n- **用户注册、登录**：无鉴权\n- **课表、课程（讲师/管理）接口**：需 `Authorization: Bearer <accessToken>`，网关解析 JWT 后注入 X-User-Id |\n- **订单接口**：需 Bearer Token，网关解析 JWT 后注入 X-User-Id |\n- **内部接口**：/internal/** 网关屏蔽，应返回 403 |\n\n## 验证顺序\n1. 启动所有服务\n2. POST 登录 → 拿到 Token\n3. GET 课表 不带 Token → 预期 401\n4. GET 课表 带 Token → 预期 200\n5. GET 内部接口（走网关）→ 预期 403\n\n## 统一响应格式 (Result)\n\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": { ... }\n}\n```\n\n查询/删除 200，创建 201（code、msg 与 HTTP 状态一致）。",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/draft-07/collection.json"
   },
   "variable": [
@@ -47,7 +47,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "users", "register"]
             },
-            "description": "# 用户注册\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 用户注册 |\n| 方法 | POST |\n| 路径 | /users/register |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| username | string | 是 | 用户名 |\n| email | string | 否 | 邮箱 |\n| password | string | 是 | 登录密码 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"role\": \"USER\",\n    \"createdAt\": \"2025-02-21T12:00:00.000Z\",\n    \"updatedAt\": \"2025-02-21T12:00:00.000Z\"\n  }\n}\n```\n\n**data 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| id | long | 用户 ID |\n| username | string | 用户名 |\n| email | string | 邮箱 |\n| role | string | 角色，默认 USER |\n| createdAt | string | 创建时间 (ISO 8601 UTC) |\n| updatedAt | string | 更新时间 (ISO 8601 UTC) |\n\n## 错误响应\n- **400**：用户名或密码为空\n- **409**：用户名已存在 / 邮箱已存在"
+            "description": "# 用户注册\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 用户注册 |\n| 方法 | POST |\n| 路径 | /users/register |\n| 鉴权 | 无 |\n| Content-Type | application/json |\n\n## 请求参数\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| username | string | 是 | 用户名 |\n| email | string | 否 | 邮箱 |\n| password | string | 是 | 登录密码 |\n\n## 成功响应 (HTTP 201)\n```json\n{\n  \"code\": 201,\n  \"msg\": \"created\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"role\": \"USER\",\n    \"createdAt\": \"2025-02-21T12:00:00.000Z\",\n    \"updatedAt\": \"2025-02-21T12:00:00.000Z\"\n  }\n}\n```\n\n**data 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| id | long | 用户 ID |\n| username | string | 用户名 |\n| email | string | 邮箱 |\n| role | string | 角色，默认 USER |\n| createdAt | string | 创建时间 (ISO 8601 UTC) |\n| updatedAt | string | 更新时间 (ISO 8601 UTC) |\n\n## 错误响应\n- **400**：用户名或密码为空\n- **409**：用户名已存在 / 邮箱已存在"
           }
         }
       ]
@@ -199,7 +199,7 @@
                 }
               ]
             },
-            "description": "# 分页查询我的课表\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 分页查询我的课表 |\n| 方法 | GET |\n| 路径 | /enrollment/page |\n| 鉴权 | X-User-Id 请求头 |\n\n## 请求参数\n| 参数 | 类型 | 必填 | 默认 | 说明 |\n|------|------|------|------|------|\n| X-User-Id | header | 是 | - | 当前用户 ID |\n| page | query | 否 | 0 | 页码 |\n| size | query | 否 | 10 | 每页大小 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"content\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, ... } ],\n    \"total\": 1,\n    \"page\": 0,\n    \"size\": 10,\n    \"totalPages\": 1\n  }\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：无数据时 content 为空数组"
+            "description": "# 分页查询我的课表\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 分页查询我的课表 |\n| 方法 | GET |\n| 路径 | /api/v1/enrollments |\n| 鉴权 | X-User-Id 请求头 |\n\n## 请求参数\n| 参数 | 类型 | 必填 | 默认 | 说明 |\n|------|------|------|------|------|\n| X-User-Id | header | 是 | - | 当前用户 ID |\n| page | query | 否 | 0 | 页码 |\n| size | query | 否 | 10 | 每页大小 |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"content\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, ... } ],\n    \"total\": 1,\n    \"page\": 0,\n    \"size\": 10,\n    \"totalPages\": 1\n  }\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：无数据时 content 为空数组"
           }
         },
         {
@@ -217,7 +217,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "enrollments", "now"]
             },
-            "description": "# 查询最近正在学习的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 查询最近正在学习的课程 |\n| 方法 | GET |\n| 路径 | /enrollment/now |\n| 鉴权 | X-User-Id 请求头 |\n\n## 说明\n返回 status=1（学习中）的课程列表，按最近学习时间倒序，最多 10 条。\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, \"status\": 1, ... } ]\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头"
+            "description": "# 查询最近正在学习的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 查询最近正在学习的课程 |\n| 方法 | GET |\n| 路径 | /api/v1/enrollments/now |\n| 鉴权 | X-User-Id 请求头 |\n\n## 说明\n返回 status=IN_PROGRESS（学习中）的课程列表，按最近学习时间倒序，最多 10 条。\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": [ { \"id\": 1, \"userId\": 1, \"courseId\": 100, \"status\": \"IN_PROGRESS\", ... } ]\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头"
           }
         },
         {
@@ -241,7 +241,7 @@
                 }
               ]
             },
-            "description": "# 查询指定课程的学习状态\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 根据课程 ID 查询学习状态 |\n| 方法 | GET |\n| 路径 | /enrollment/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"userId\": 1,\n    \"courseId\": 100,\n    \"status\": 1,\n    \"weekFreq\": 6,\n    \"planStatus\": 1,\n    \"learnedSections\": 3,\n    \"latestSectionId\": 15,\n    \"latestLearnTime\": \"2025-02-21T12:00:00Z\",\n    \"createdAt\": \"2025-02-20T10:00:00Z\",\n    \"expireTime\": null,\n    \"updatedAt\": \"2025-02-21T12:00:00Z\"\n  }\n}\n```\n\n**EnrollmentResponse 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| status | int | 0-未学习，1-学习中，2-已学完，3-已失效 |\n| planStatus | int | 0-没有计划，1-计划进行中 |\n| learnedSections | int | 已学习小节数量 |\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
+            "description": "# 查询指定课程的学习状态\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 根据课程 ID 查询学习状态 |\n| 方法 | GET |\n| 路径 | /api/v1/enrollments/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1,\n    \"userId\": 1,\n    \"courseId\": 100,\n    \"status\": \"IN_PROGRESS\",\n    \"learnedSections\": 3,\n    \"latestSectionId\": 15,\n    \"latestLearnTime\": \"2025-02-21T12:00:00Z\",\n    \"createdAt\": \"2025-02-20T10:00:00Z\",\n    \"expireTime\": null,\n    \"updatedAt\": \"2025-02-21T12:00:00Z\"\n  }\n}\n```\n\n**EnrollmentResponse 字段说明**\n| 字段 | 类型 | 说明 |\n|------|------|------|\n| status | string | NOT_STARTED-未开始，IN_PROGRESS-学习中，COMPLETED-已学完，EXPIRED-已过期 |\n| learnedSections | int | 已学习小节数量 |\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
           }
         },
         {
@@ -265,7 +265,7 @@
                 }
               ]
             },
-            "description": "# 删除课表中的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 删除课表中的某课程 |\n| 方法 | DELETE |\n| 路径 | /enrollment/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": null\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
+            "description": "# 删除课表中的课程\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 删除课表中的某课程 |\n| 方法 | DELETE |\n| 路径 | /api/v1/enrollments/{courseId} |\n| 鉴权 | X-User-Id 请求头 |\n\n## 路径参数\n| 参数 | 类型 | 说明 |\n|------|------|------|\n| courseId | path | 课程 ID |\n\n## 成功响应 (HTTP 200)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": null\n}\n```\n\n## 错误响应\n- **400**：缺少 X-User-Id 请求头\n- **404**：课程不在课表中"
           }
         }
       ]
@@ -322,7 +322,7 @@
               "path": ["api", "v1", "courses"]
             }
           },
-          "description": "# 创建课程（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n仅管理员可创建课程，创建后直接上架（ACTIVE）。\n\n## 请求体 CourseRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 课程标题 |\n| description | string | 否 | 课程描述 |\n| coverImage | string | 否 | 封面图 URL |\n| price | number | 是 | 价格，0 表示免费 |\n| category | string | 否 | 分类 |\n| level | string | 否 | BEGINNER/INTERMEDIATE/ADVANCED |\n| validDays | int | 否 | 有效天数，null 表示永久有效 |\n\n## 成功响应 (HTTP 201)\n\n## 错误响应\n- **403**：非管理员"
+          "description": "# 创建课程（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n仅管理员可创建课程，创建后直接上架（ACTIVE）。\n\n## 请求体 CourseRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 课程标题 |\n| description | string | 否 | 课程描述 |\n| coverImage | string | 否 | 封面图 URL |\n| price | number | 是 | 价格，0 表示免费 |\n| category | string | 否 | 分类 |\n| level | string | 否 | BEGINNER/INTERMEDIATE/ADVANCED |\n| validDays | int | 否 | 有效天数，null 表示永久有效 |\n\n## 成功响应 (HTTP 201)\n```json\n{\"code\": 201, \"msg\": \"created\", \"data\": { ... CourseResponse }}\n```\n\n## 错误响应\n- **403**：非管理员"
         },
         {
           "name": "更新课程",
@@ -356,7 +356,7 @@
               "path": ["api", "v1", "courses", "1"]
             }
           },
-          "description": "# 下架课程（管理员）\n\n## 接口概览\n| 方法 | DELETE | 路径 | /api/v1/courses/{id} | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n将课程状态设为 INACTIVE，下架后不再在公开列表中显示。\n\n## 成功响应 (HTTP 204)\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
+          "description": "# 下架课程（管理员）\n\n## 接口概览\n| 方法 | DELETE | 路径 | /api/v1/courses/{id} | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 说明\n将课程状态设为 INACTIVE，下架后不再在公开列表中显示。\n\n## 成功响应 (HTTP 200)\n```json\n{\"code\": 200, \"msg\": \"success\", \"data\": null}\n```\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
         },
         {
           "name": "添加小节",
@@ -377,7 +377,7 @@
               "path": ["api", "v1", "courses", "1", "sections"]
             }
           },
-          "description": "# 添加小节（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses/{id}/sections | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 请求体 SectionRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 小节标题 |\n| duration | int | 否 | 时长（秒） |\n| sortOrder | int | 否 | 排序 |\n| isFree | boolean | 否 | 是否免费试看 |\n\n## 成功响应 (HTTP 201)\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
+          "description": "# 添加小节（管理员）\n\n## 接口概览\n| 方法 | POST | 路径 | /api/v1/courses/{id}/sections | 鉴权 | Bearer Token + ROLE_ADMIN |\n\n## 请求体 SectionRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| title | string | 是 | 小节标题 |\n| duration | int | 否 | 时长（秒） |\n| sortOrder | int | 否 | 排序 |\n| isFree | boolean | 否 | 是否免费试看 |\n\n## 成功响应 (HTTP 201)\n```json\n{\"code\": 201, \"msg\": \"created\", \"data\": { \"id\": 101, \"title\": \"...\", ... }}\n```\n\n## 错误响应\n- **403**：非管理员\n- **404**：课程不存在"
         }
       ]
     },
@@ -404,7 +404,7 @@
               "path": ["api", "v1", "orders"]
             }
           },
-          "description": "# 创建订单（购买课程）\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 创建订单（购买课程） |\n| 方法 | POST |\n| 路径 | /api/v1/orders |\n| 鉴权 | Bearer Token |\n| Content-Type | application/json |\n\n## 说明\n创建订单，状态为 PENDING。返回 orderId 和 payExpireTime。用户需在超时前调用支付接口，免费和付费课程都需先创建再主动支付。\n\n## 请求体 CreateOrderRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| courseId | long | 是 | 课程 ID |\n\n## 成功响应 (HTTP 201)\n```json\n{\n  \"code\": 200,\n  \"msg\": \"success\",\n  \"data\": {\n    \"id\": 1234567890123456789,\n    \"userId\": 1,\n    \"courseId\": 1,\n    \"amount\": 99.00,\n    \"status\": \"PENDING\",\n    \"payExpireTime\": \"2025-02-22T14:30:00Z\",\n    \"createdAt\": \"2025-02-22T14:00:00Z\"\n  }\n}\n```\n\n## 错误响应\n- **404**：课程不存在\n- **409**：课程已购买 / 已有未支付订单"
+          "description": "# 创建订单（购买课程）\n\n## 接口概览\n| 属性 | 值 |\n|------|-----|\n| 名称 | 创建订单（购买课程） |\n| 方法 | POST |\n| 路径 | /api/v1/orders |\n| 鉴权 | Bearer Token |\n| Content-Type | application/json |\n\n## 说明\n创建订单，状态为 PENDING。返回 orderId 和 payExpireTime。用户需在超时前调用支付接口，免费和付费课程都需先创建再主动支付。\n\n## 请求体 CreateOrderRequest\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| courseId | long | 是 | 课程 ID |\n\n## 成功响应 (HTTP 201)\n```json\n{\n  \"code\": 201,\n  \"msg\": \"created\",\n  \"data\": {\n    \"id\": 1234567890123456789,\n    \"userId\": 1,\n    \"courseId\": 1,\n    \"amount\": 99.00,\n    \"status\": \"PENDING\",\n    \"payExpireTime\": \"2025-02-22T14:30:00Z\",\n    \"createdAt\": \"2025-02-22T14:00:00Z\"\n  }\n}\n```\n\n## 错误响应\n- **404**：课程不存在\n- **409**：课程已购买 / 已有未支付订单"
         },
         {
           "name": "支付订单",

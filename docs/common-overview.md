@@ -16,7 +16,7 @@
 
 | 作用 | 说明 |
 |------|------|
-| **统一 API 格式** | 所有接口返回 `{"code":200,"msg":"success","data":...}` 结构，前端解析一致 |
+| **统一 API 格式** | 查询/更新/删除返回 `code:200`，创建返回 `code:201`，HTTP 状态码与 body.code 一致 |
 | **分页标准化** | `PageDto` 封装分页数据，与 Spring Data `Page` 无缝衔接 |
 | **异常统一处理** | 业务异常映射为对应 HTTP 状态码和 `Result` 格式，无需在各 Controller 重复 try-catch |
 | **代码复用** | 避免在 auth-service、user-service 等中重复实现相同逻辑 |
@@ -96,8 +96,9 @@ public class Result<T> {
   private final T data;
 
   // 成功
-  public static <T> Result<T> success(T data) { ... }
-  public static <T> Result<T> success() { ... }
+  public static <T> Result<T> success(T data) { ... }   // HTTP 200
+  public static <T> Result<T> success() { ... }         // HTTP 200
+  public static <T> Result<T> created(T data) { ... }   // HTTP 201
 
   // 错误
   public static <T> Result<T> error(int code, String msg) { ... }
@@ -108,14 +109,16 @@ public class Result<T> {
 
 ```json
 {"code":200,"msg":"success","data":{"id":1,"name":"John"}}
+{"code":201,"msg":"created","data":{"id":1,"name":"John"}}
 {"code":400,"msg":"Username is required","data":null}
 ```
 
 **在 Controller 中的用法**：
 
 ```java
-return Result.success(user);           // 200
-return Result.success();               // 200，无 data
+return Result.success(user);           // 查询/更新，HTTP 200
+return Result.success();               // 删除，HTTP 200
+return Result.created(user);           // 创建，HTTP 201
 return Result.error(400, "Invalid");   // 一般由异常处理器使用
 ```
 

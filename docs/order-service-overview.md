@@ -161,11 +161,8 @@ public MessageConverter messageConverter() {
 
 ```java
 // 7. 查询 validDays 发送 MQ
-Result<CourseResponse> courseResult = courseServiceClient
-        .getCourseById(order.getCourseId());
-Integer validDays = courseResult != null && courseResult.getData() != null
-        ? courseResult.getData().getValidDays()
-        : null;
+CourseInternalResponse course = courseServiceClient.getCourseById(order.getCourseId());
+Integer validDays = course != null ? course.getValidDays() : null;
 
 rabbitTemplate.convertAndSend(
         RabbitMQConfig.ORDER_EXCHANGE,
@@ -298,8 +295,6 @@ order-service 注册到 Eureka，Gateway 通过 `lb://order-service` 路由。
   uri: lb://order-service
   predicates:
     - Path=/api/v1/orders/**
-  filters:
-    - StripPrefix=2
 ```
 
 ---
@@ -324,7 +319,7 @@ order-service/
 │   │   ├── dto/
 │   │   │   ├── CreateOrderRequest.java
 │   │   │   ├── OrderResponse.java
-│   │   │   └── CourseResponse.java
+│   │   │   └── CourseInternalResponse.java
 │   │   ├── entity/
 │   │   │   ├── Order.java
 │   │   │   └── OrderStatus.java

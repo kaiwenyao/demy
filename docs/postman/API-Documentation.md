@@ -24,12 +24,29 @@
 
 ## 统一响应格式 (Result)
 
-成功：
+| 操作类型 | HTTP 状态 | Result.code | Result.msg |
+|----------|-----------|-------------|------------|
+| 查询 | 200 OK | 200 | success |
+| 创建 | 201 Created | 201 | created |
+| 更新/删除 | 200 OK | 200 | success |
+| 错误 | 4xx/5xx | 同 HTTP 状态码 | 错误描述 |
+
+**查询成功示例**：
 
 ```json
 {
   "code": 200,
   "msg": "success",
+  "data": { ... }
+}
+```
+
+**创建成功示例**：
+
+```json
+{
+  "code": 201,
+  "msg": "created",
   "data": { ... }
 }
 ```
@@ -84,12 +101,12 @@
 }
 ```
 
-### 成功响应 (HTTP 200)
+### 成功响应 (HTTP 201)
 
 ```json
 {
-  "code": 200,
-  "msg": "success",
+  "code": 201,
+  "msg": "created",
   "data": {
     "id": 1,
     "username": "alice",
@@ -240,9 +257,7 @@
         "id": 1,
         "userId": 1,
         "courseId": 100,
-        "status": 1,
-        "weekFreq": 6,
-        "planStatus": 1,
+        "status": "IN_PROGRESS",
         "learnedSections": 3,
         "latestSectionId": 15,
         "latestLearnTime": "2025-02-21T12:00:00Z",
@@ -279,7 +294,7 @@
 
 ### 说明
 
-返回 status=1（学习中）的课程列表，按最近学习时间倒序，最多 10 条。
+返回 status=IN_PROGRESS（学习中）的课程列表，按最近学习时间倒序，最多 10 条。
 
 ### 请求参数
 
@@ -298,9 +313,7 @@
       "id": 1,
       "userId": 1,
       "courseId": 100,
-      "status": 1,
-      "weekFreq": 6,
-      "planStatus": 1,
+      "status": "IN_PROGRESS",
       "learnedSections": 3,
       "latestSectionId": 15,
       "latestLearnTime": "2025-02-21T12:00:00Z",
@@ -346,9 +359,7 @@
     "id": 1,
     "userId": 1,
     "courseId": 100,
-    "status": 1,
-    "weekFreq": 6,
-    "planStatus": 1,
+    "status": "IN_PROGRESS",
     "learnedSections": 3,
     "latestSectionId": 15,
     "latestLearnTime": "2025-02-21T12:00:00Z",
@@ -363,9 +374,11 @@
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| status | int | 0-未学习，1-学习中，2-已学完，3-已失效 |
-| planStatus | int | 0-没有计划，1-计划进行中 |
+| status | string | NOT_STARTED-未开始，IN_PROGRESS-学习中，COMPLETED-已学完，EXPIRED-已过期 |
 | learnedSections | int | 已学习小节数量 |
+| latestSectionId | long | 最近一次学习的小节 ID |
+| latestLearnTime | string | 最近一次学习时间 (ISO 8601) |
+| expireTime | string | 过期时间，null 表示永久有效 |
 
 ### 错误响应
 
@@ -580,8 +593,8 @@
 
 ```json
 {
-  "code": 200,
-  "msg": "success",
+  "code": 201,
+  "msg": "created",
   "data": { ... CourseResponse }
 }
 ```
@@ -714,8 +727,8 @@
 
 ```json
 {
-  "code": 200,
-  "msg": "success",
+  "code": 201,
+  "msg": "created",
   "data": {
     "id": 101,
     "title": "第 1 章：环境搭建",
@@ -770,8 +783,8 @@
 
 ```json
 {
-  "code": 200,
-  "msg": "success",
+  "code": 201,
+  "msg": "created",
   "data": {
     "id": 1234567890123456789,
     "userId": 1,
