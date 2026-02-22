@@ -12,30 +12,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String ORDER_EXCHANGE = "order.exchange";
-    public static final String ENROLLMENT_QUEUE = "enrollment.queue";
-    public static final String ROUTING_KEY = "order.paid";
+  public static final String ORDER_EXCHANGE = "order.exchange";
+  public static final String ENROLLMENT_QUEUE = "enrollment.queue";
+  public static final String ROUTING_KEY = "order.paid";
 
-    @Bean
-    public TopicExchange orderExchange() {
-        return new TopicExchange(ORDER_EXCHANGE, true, false);
-    }
+  @Bean
+  public TopicExchange orderExchange() {
+    return new TopicExchange(ORDER_EXCHANGE, true, false);
+  }
 
-    @Bean
-    public Queue enrollmentQueue() {
-        return new Queue(ENROLLMENT_QUEUE, true);
-    }
+  @Bean
+  public Queue enrollmentQueue() {
+    return new Queue(ENROLLMENT_QUEUE, true);
+  }
 
-    @Bean
-    public Binding binding(Queue enrollmentQueue, TopicExchange orderExchange) {
-        return BindingBuilder
-                .bind(enrollmentQueue)
-                .to(orderExchange)
-                .with(ROUTING_KEY);
-    }
+  @Bean
+  public Binding binding(Queue enrollmentQueue, TopicExchange orderExchange) {
+    return BindingBuilder
+        .bind(enrollmentQueue)
+        .to(orderExchange)
+        .with(ROUTING_KEY);
+  }
 
-    @Bean
-    public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
+  @Bean
+  public MessageConverter messageConverter() {
+    return new Jackson2JsonMessageConverter();
+  }
 }
