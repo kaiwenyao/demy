@@ -88,8 +88,8 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | username | string | 是 | 用户名 |
-| email | string | 否 | 邮箱 |
-| password | string | 是 | 登录密码 |
+| email | string | 否 | 邮箱（若提供须符合格式） |
+| password | string | 是 | 登录密码，至少 6 位 |
 
 ### 请求示例
 
@@ -129,8 +129,12 @@
 
 ### 错误响应
 
-- **400** — 用户名或密码为空
-- **409** — 用户名已存在 / 邮箱已存在
+- **400** — 参数校验失败，msg 格式为 `字段名: 校验信息`，例如：
+  - `username: Username is required` — 用户名为空
+  - `password: Password is required` — 密码为空
+  - `password: Password must be at least 6 characters` — 密码少于 6 位
+  - `email: Invalid email format` — 邮箱格式错误
+- **409** — 用户名已存在 / 邮箱已被注册
 
 ---
 

@@ -112,7 +112,7 @@ Controller 从 Header 读取用户身份：
 | `Result` | `return Result.success(data)` 统一响应格式 |
 | `PageDto` | `PageDto.of(content, total, page, size)` 分页封装 |
 | `ResourceNotFoundException` | 选课记录不存在时抛出，自动返回 404 |
-| `BadRequestException` | `X-User-Id` 缺失时抛出，自动返回 400 |
+| `MissingRequestHeaderException` | `X-User-Id` 缺失时由 `@RequestHeader` 触发，GlobalExceptionHandler 返回 400 |
 | `GlobalExceptionHandler` | 自动装配，将异常转为 `Result` 格式 |
 
 ---
