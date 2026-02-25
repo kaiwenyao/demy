@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * ResourceNotFoundException、BadRequestException、MethodArgumentNotValidException 等由 common 的 GlobalExceptionHandler 处理。
  */
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class AuthExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
