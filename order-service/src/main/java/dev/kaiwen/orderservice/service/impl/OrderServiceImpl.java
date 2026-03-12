@@ -15,6 +15,7 @@ import dev.kaiwen.orderservice.entity.OrderStatus;
 import dev.kaiwen.orderservice.mapper.OrderMapper;
 import dev.kaiwen.orderservice.repository.OrderRepository;
 import dev.kaiwen.orderservice.service.OrderService;
+import dev.kaiwen.orderservice.service.OrderStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -38,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserServiceClient userServiceClient;
     private final RabbitTemplate rabbitTemplate;
     private final OrderMapper orderMapper;
+    private final OrderStatusService orderStatusService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -100,8 +102,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 4. 校验是否超时
         if (Instant.now().isAfter(order.getPayExpireTime())) {
-            order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
+            orderStatusService.cancelOrder(order);
             throw new BadRequestException("Order has expired");
         }
 
