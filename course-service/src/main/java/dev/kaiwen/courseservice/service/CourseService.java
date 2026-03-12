@@ -1,5 +1,6 @@
 package dev.kaiwen.courseservice.service;
 
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.courseservice.dto.*;
 import org.springframework.data.domain.Pageable;

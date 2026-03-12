@@ -1,5 +1,6 @@
 package dev.kaiwen.orderservice.service.impl;
 
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import dev.kaiwen.common.exception.BadRequestException;
 import dev.kaiwen.common.exception.ResourceAlreadyExistsException;
 import dev.kaiwen.common.exception.ResourceNotFoundException;
@@ -8,12 +9,13 @@ import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.orderservice.client.CourseServiceClient;
 import dev.kaiwen.orderservice.client.UserServiceClient;
 import dev.kaiwen.orderservice.config.RabbitMQConfig;
-import dev.kaiwen.orderservice.dto.CourseInternalResponse;
 import dev.kaiwen.orderservice.dto.OrderResponse;
 import dev.kaiwen.orderservice.entity.Order;
 import dev.kaiwen.orderservice.entity.OrderStatus;
+import dev.kaiwen.orderservice.mapper.OrderMapper;
 import dev.kaiwen.orderservice.repository.OrderRepository;
 import dev.kaiwen.orderservice.service.OrderService;
+import dev.kaiwen.orderservice.service.OrderStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -36,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
     private final CourseServiceClient courseServiceClient;
     private final UserServiceClient userServiceClient;
     private final RabbitTemplate rabbitTemplate;
+    private final OrderMapper orderMapper;
+    private final OrderStatusService orderStatusService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -69,6 +73,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUserId(userId);
         order.setCourseId(courseId);
         order.setAmount(price);
+        order.setValidDays(course.getValidDays());
         order.setStatus(OrderStatus.PENDING);
         order.setPayExpireTime(Instant.now().plusSeconds(30 * 60));
         orderRepository.save(order);
@@ -97,8 +102,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 4. 校验是否超时
         if (Instant.now().isAfter(order.getPayExpireTime())) {
-            order.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(order);
+            orderStatusService.cancelOrder(order);
             throw new BadRequestException("Order has expired");
         }
 
@@ -115,10 +119,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
 
-        // 7. 查询 validDays 发送 MQ
-        CourseInternalResponse course = courseServiceClient.getCourseById(order.getCourseId());
-        Integer validDays = course != null ? course.getValidDays() : null;
-
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.ORDER_EXCHANGE,
                 RabbitMQConfig.ROUTING_KEY,
@@ -126,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
                         order.getId(),
                         order.getUserId(),
                         order.getCourseId(),
-                        validDays
+                        order.getValidDays()
                 )
         );
         log.info("Order {} paid successfully", orderId);
@@ -144,14 +144,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
-        OrderResponse response = new OrderResponse();
-        response.setId(order.getId());
-        response.setUserId(order.getUserId());
-        response.setCourseId(order.getCourseId());
-        response.setAmount(order.getAmount());
-        response.setStatus(order.getStatus());
-        response.setPayExpireTime(order.getPayExpireTime());
-        response.setCreatedAt(order.getCreatedAt());
-        return response;
+        return orderMapper.orderToResponse(order);
     }
 }
