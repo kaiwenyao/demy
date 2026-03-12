@@ -26,7 +26,7 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    @GetMapping
+    @GetMapping("/page")
     @Operation(summary = "分页查询我的课表", description = "分页查询当前用户的课表，按更新时间倒序")
     @ApiResponse(responseCode = "200", description = "查询成功")
     @ApiResponse(responseCode = "400", description = "缺少 X-User-Id 请求头")
