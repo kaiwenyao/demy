@@ -12,6 +12,7 @@ import dev.kaiwen.orderservice.config.RabbitMQConfig;
 import dev.kaiwen.orderservice.dto.OrderResponse;
 import dev.kaiwen.orderservice.entity.Order;
 import dev.kaiwen.orderservice.entity.OrderStatus;
+import dev.kaiwen.orderservice.mapper.OrderMapper;
 import dev.kaiwen.orderservice.repository.OrderRepository;
 import dev.kaiwen.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final CourseServiceClient courseServiceClient;
     private final UserServiceClient userServiceClient;
     private final RabbitTemplate rabbitTemplate;
+    private final OrderMapper orderMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -144,14 +146,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
-        OrderResponse response = new OrderResponse();
-        response.setId(order.getId());
-        response.setUserId(order.getUserId());
-        response.setCourseId(order.getCourseId());
-        response.setAmount(order.getAmount());
-        response.setStatus(order.getStatus());
-        response.setPayExpireTime(order.getPayExpireTime());
-        response.setCreatedAt(order.getCreatedAt());
-        return response;
+        return orderMapper.orderToResponse(order);
     }
 }
