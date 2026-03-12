@@ -10,6 +10,7 @@ import dev.kaiwen.courseservice.repository.CourseRepository;
 import dev.kaiwen.courseservice.repository.CourseSectionRepository;
 import dev.kaiwen.courseservice.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final CourseSectionRepository sectionRepository;
 
+    @Cacheable(value = "courses", key = "(#category ?: 'all') + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
     @Override
     public PageDto<CourseResponse> findAll(String category, Pageable pageable) {
         Page<Course> page = (category != null && !category.isBlank())

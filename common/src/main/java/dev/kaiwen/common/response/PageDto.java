@@ -1,5 +1,9 @@
 package dev.kaiwen.common.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
@@ -10,6 +14,7 @@ import org.springframework.data.domain.Page;
  *
  * @param <T> 当前页数据元素类型
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 public class PageDto<T> {
 
@@ -24,7 +29,13 @@ public class PageDto<T> {
   /** 总页数 */
   private final int totalPages;
 
-  private PageDto(List<T> content, long total, int page, int size) {
+  @JsonCreator
+  private PageDto(
+      @JsonProperty("content") List<T> content,
+      @JsonProperty("total") long total,
+      @JsonProperty("page") int page,
+      @JsonProperty("size") int size,
+      @JsonProperty("totalPages") Integer ignoredTotalPages) {
     if (total < 0) {
       throw new IllegalArgumentException("total must be >= 0");
     }
@@ -51,7 +62,7 @@ public class PageDto<T> {
    * @param size 每页大小
    */
   public static <T> PageDto<T> of(List<T> content, long total, int page, int size) {
-    return new PageDto<>(content, total, page, size);
+    return new PageDto<>(content, total, page, size, null);
   }
 
   /**
@@ -69,7 +80,8 @@ public class PageDto<T> {
         page.getContent(),
         page.getTotalElements(),
         page.getNumber(),
-        page.getSize());
+        page.getSize(),
+        null);
   }
 
   /** 是否有下一页 */
@@ -83,16 +95,19 @@ public class PageDto<T> {
   }
 
   /** 是否为首页 */
+  @JsonIgnore
   public boolean isFirst() {
     return !hasPrevious();
   }
 
   /** 是否为末页 */
+  @JsonIgnore
   public boolean isLast() {
     return !hasNext();
   }
 
   /** 是否为空（无数据） */
+  @JsonIgnore
   public boolean isEmpty() {
     return content.isEmpty();
   }
