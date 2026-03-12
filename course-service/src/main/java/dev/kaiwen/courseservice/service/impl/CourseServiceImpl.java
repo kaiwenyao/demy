@@ -1,11 +1,13 @@
 package dev.kaiwen.courseservice.service.impl;
 
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import dev.kaiwen.common.exception.ResourceNotFoundException;
 import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.courseservice.dto.*;
 import dev.kaiwen.courseservice.entity.Course;
 import dev.kaiwen.courseservice.entity.CourseSection;
 import dev.kaiwen.courseservice.entity.CourseStatus;
+import dev.kaiwen.courseservice.mapper.CourseMapper;
 import dev.kaiwen.courseservice.repository.CourseRepository;
 import dev.kaiwen.courseservice.repository.CourseSectionRepository;
 import dev.kaiwen.courseservice.service.CourseService;
@@ -24,6 +26,7 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseSectionRepository sectionRepository;
+    private final CourseMapper courseMapper;
 
     @Cacheable(value = "courses", key = "(#category ?: 'all') + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
     @Override
@@ -111,20 +114,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private CourseResponse toResponse(Course course, boolean withSections) {
-        CourseResponse response = new CourseResponse();
-        response.setId(course.getId());
-        response.setTitle(course.getTitle());
-        response.setDescription(course.getDescription());
-        response.setCoverImage(course.getCoverImage());
-        response.setPrice(course.getPrice());
-        response.setCategory(course.getCategory());
-        response.setInstructorId(course.getInstructorId());
-        response.setLevel(course.getLevel());
-        response.setSectionCount(course.getSectionCount());
-        response.setStatus(course.getStatus());
-        response.setValidDays(course.getValidDays());
-        response.setCreatedAt(course.getCreatedAt());
-
+        CourseResponse response = courseMapper.courseToResponse(course);
         response.setSections(withSections
                 ? sectionRepository.findByCourseIdOrderBySortOrderAsc(course.getId())
                         .stream().map(this::toSectionResponse).toList()

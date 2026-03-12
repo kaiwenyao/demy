@@ -1,6 +1,6 @@
 package dev.kaiwen.courseservice.controller;
 
-import dev.kaiwen.courseservice.dto.CourseInternalResponse;
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import dev.kaiwen.courseservice.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

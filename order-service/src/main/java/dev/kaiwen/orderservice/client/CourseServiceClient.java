@@ -1,6 +1,6 @@
 package dev.kaiwen.orderservice.client;
 
-import dev.kaiwen.orderservice.dto.CourseInternalResponse;
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

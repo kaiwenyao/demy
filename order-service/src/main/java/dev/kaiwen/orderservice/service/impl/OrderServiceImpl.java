@@ -1,5 +1,6 @@
 package dev.kaiwen.orderservice.service.impl;
 
+import dev.kaiwen.common.dto.CourseInternalResponse;
 import dev.kaiwen.common.exception.BadRequestException;
 import dev.kaiwen.common.exception.ResourceAlreadyExistsException;
 import dev.kaiwen.common.exception.ResourceNotFoundException;
@@ -8,7 +9,6 @@ import dev.kaiwen.common.response.PageDto;
 import dev.kaiwen.orderservice.client.CourseServiceClient;
 import dev.kaiwen.orderservice.client.UserServiceClient;
 import dev.kaiwen.orderservice.config.RabbitMQConfig;
-import dev.kaiwen.orderservice.dto.CourseInternalResponse;
 import dev.kaiwen.orderservice.dto.OrderResponse;
 import dev.kaiwen.orderservice.entity.Order;
 import dev.kaiwen.orderservice.entity.OrderStatus;
