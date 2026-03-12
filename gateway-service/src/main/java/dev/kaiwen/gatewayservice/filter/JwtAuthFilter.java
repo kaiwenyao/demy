@@ -26,6 +26,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     // 不需要 Token 的路径白名单
     private static final List<String> WHITE_LIST = List.of(
+        "/actuator",
         "/api/v1/auth/login",
         "/api/v1/auth/refresh",
         "/api/v1/users/register",

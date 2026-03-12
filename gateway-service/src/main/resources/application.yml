@@ -29,6 +29,12 @@ spring:
               predicates:
                 - Path=/api/v1/orders/**
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 eureka:
   client:
     service-url:
