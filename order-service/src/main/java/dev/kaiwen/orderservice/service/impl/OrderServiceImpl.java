@@ -71,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
         order.setUserId(userId);
         order.setCourseId(courseId);
         order.setAmount(price);
+        order.setValidDays(course.getValidDays());
         order.setStatus(OrderStatus.PENDING);
         order.setPayExpireTime(Instant.now().plusSeconds(30 * 60));
         orderRepository.save(order);
@@ -117,10 +118,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
 
-        // 7. 查询 validDays 发送 MQ
-        CourseInternalResponse course = courseServiceClient.getCourseById(order.getCourseId());
-        Integer validDays = course != null ? course.getValidDays() : null;
-
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.ORDER_EXCHANGE,
                 RabbitMQConfig.ROUTING_KEY,
@@ -128,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
                         order.getId(),
                         order.getUserId(),
                         order.getCourseId(),
-                        validDays
+                        order.getValidDays()
                 )
         );
         log.info("Order {} paid successfully", orderId);
